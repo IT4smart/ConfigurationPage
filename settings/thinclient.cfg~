@@ -1,0 +1,13 @@
+# configuration file
+
+NET_TYPE = DHCP
+NET_IP = 172.16.251.60
+NET_NETMASK = 255.255.0.0
+NET_GATEWAY = 172.16.0.1
+CTXRDP_TYPE = CTX
+CTXRDP_CTX_LINK = https://extern.ass-hn.de
+CTXRDP_CTX_BIN = /opt/Citrix/ICAClient/util/storebrowse
+CTXRDP_RDP_LINK = irgendeinrdplink2
+CTXRDP_RDP_DOMAIN = ASS-HN.DE
+CTXRDP_RDP_BIN = /usr/bin/rdesktop
+
