@@ -36,18 +36,20 @@ static void init_empty_row() {
 	empty_row_network_back	= gtk_label_new("");
 	empty_row_ctxrdp	= gtk_label_new("");
 	empty_row_ctxrdp_back= gtk_label_new("");
+	empty_row_cert		= gtk_label_new("");
+	empty_row_cert_back	= gtk_label_new("");
 }
 
 
 static void init_label() {
-	//network
+	// network
 	label_network		= gtk_label_new("Netzwerk");
 	label_network_type	= gtk_label_new("Netzwerktyp:");
 	label_network_ip	= gtk_label_new("Lokale IP:");
 	label_network_netmask	= gtk_label_new("Netzmaske:");
 	label_network_gateway	= gtk_label_new("Gateway:");
 
-	//ctxrdp
+	// ctxrdp
 	label_ctxrdp		= gtk_label_new("Citrix und Remote Desktop");
 	label_ctxrdp_type	= gtk_label_new("Anmeldung:");
 	label_ctx_link		= gtk_label_new("Citrix Link:");
@@ -55,7 +57,11 @@ static void init_label() {
 	label_rdp_link		= gtk_label_new("RDP Link:");
 	label_rdp_domain	= gtk_label_new("RDP Domain:");
 
-	//status
+	// cert
+	label_cert		= gtk_label_new("Zertifikat");
+	label_cert_file		= gtk_label_new("Zertifikat Datei");
+
+	// status
 	label_status		= gtk_label_new("");
 }
 
@@ -74,6 +80,7 @@ static void init_entry() {
 		//GTK_INPUT_PURPOSE_URL
 	entry_ctxrdp_rdp	= gtk_entry_new();
 	entry_ctxrdp_rdp_domain	= gtk_entry_new();
+	entry_cert_file		= gtk_entry_new();
 
 }
 
@@ -85,6 +92,10 @@ static void init_button() {
 	//ctxrdp
 	button_ctxrdp_ctx		= gtk_button_new_with_label ("Link speichern");
 	button_ctxrdp_rdp 		= gtk_button_new_with_label ("Link speichern");
+	
+	// cert
+	button_cert_file_choose		= gtk_button_new_with_label ("Durchsuchen");
+	button_cert_save		= gtk_button_new_with_label ("Hochladen");
 
 	//quit
 	button_quit 		= gtk_button_new_with_label ("Anwenden");
@@ -99,13 +110,17 @@ static void init_button() {
 
 
 static void init_frame() {
-	//network
+	// network
 	frame_network		= gtk_frame_new(NULL);
 	gtk_frame_set_label_widget(GTK_FRAME(frame_network), label_network);
 
-	//citrixrd
+	// citrixrd
 	frame_ctxrdp		= gtk_frame_new(NULL);
 	gtk_frame_set_label_widget(GTK_FRAME(frame_ctxrdp), label_ctxrdp);
+
+	// cert
+	frame_cert		= gtk_frame_new(NULL);
+	gtk_frame_set_label_widget(GTK_FRAME(frame_cert), label_cert);
 }
 
 
@@ -123,6 +138,10 @@ static void init_button_functionality() {
 	g_signal_connect (button_ctxrdp_ctx, 	"clicked", G_CALLBACK (click_button_ctxrdp_ctx),	NULL);
 	g_signal_connect (button_ctxrdp_rdp,	"clicked", G_CALLBACK (click_button_ctxrdp_rdp),	NULL);
 	g_signal_connect (button_radio_ctxrdp_ctx,"toggled", G_CALLBACK (toggle_button_radio_ctxrdp), 	NULL);
+
+	// cert upload
+	g_signal_connect (button_cert_file_choose, "clicked", G_CALLBACK(click_button_cert_file_choose), NULL);
+	g_signal_connect (button_cert_save, "clicked", G_CALLBACK(click_button_cert_save), NULL);
 
 	//quit
 	g_signal_connect_swapped (button_quit,		"clicked", G_CALLBACK (quit_window), 		NULL);

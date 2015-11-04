@@ -10,6 +10,7 @@ void set_layout() {
 	set_headline();
 	set_network();
 	set_ctxrdp();
+	set_cert();
 	set_footline();
 }
 
@@ -41,8 +42,16 @@ static void set_layout_order() {
 	rdp_domain	=	4;		// relative row
 	ctxrdp_height	=	5;		// number of rows incl frametitle
 
+	// Certificate upload
+	cert		=	16;		// starting row
+	cert_file	=	1;		// relative row
+	cert_save	=	2;		// relative row
+	cert_height	=	4;		// number of rows incl frametitle
+
+	// Customer image upload
+
 	//quit
-	quit		=	19;		// starting row
+	quit		=	21;		// starting row
 }
 
 
@@ -149,6 +158,32 @@ static void set_ctxrdp(){
 		GTK_GRID (grid), 
 				empty_row_ctxrdp_back,	right, 	ctxrdp+ctxrdp_height, 1, 1);
 
+}
+
+
+static void set_cert() {
+	// Cert Management
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				empty_row_cert,		0,	cert,		1, 1);
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				frame_cert,		0,	cert,	right+1, cert_height);
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				label_cert_file,		0,	cert+cert_file, 1, 1);
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				entry_cert_file,	1,	cert+cert_file, right - 2, 1);
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				button_cert_file_choose,		right, cert+cert_file, 1, 1);
+	gtk_grid_attach (
+		GTK_GRID (grid),
+				button_cert_save,	right, cert+cert_height-1, 1, 1);
+	gtk_grid_attach(
+		GTK_GRID (grid),
+				empty_row_cert_back,	right,	cert+cert_height, 1, 1);
 }
 
 

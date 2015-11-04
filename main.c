@@ -68,7 +68,7 @@ void analyse_input(FILE *fp, char buffer[MAX_BUFFER]) {
 		//exit -1;
 	}
 	while (fgets(buffer, sizeof(buffer_size), fp) != NULL) {
-		printf("%s", buffer);
+		//printf("%s", buffer);
 	}
 	strtok(buffer, "\n");
 }
@@ -136,6 +136,34 @@ void default_ctxrdp() {
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button_radio_ctxrdp_ctx), TRUE);
  		}	
 }
+
+// setting network to config
+void set_network_config() {
+	char buffer_ip[MAX_BUFFER];
+	//eth0 ip
+	fp = popen("ifconfig |grep eth0 -A 1  |grep 'inet' | head -1 |  cut -d':' -f2 | cut -d' ' -f1", "r");
+
+	//store the ip
+	analyse_input(fp, buffer_ip);
+	pclose(fp);
+	config_write(STR(NET_IP), buffer_ip);
+
+	char buffer_netmask[MAX_BUFFER];
+	//get the netmask and store it
+	fp = popen("route -nee | tail -1 | awk '{print $3; }'", "r");
+	analyse_input(fp, buffer_netmask);
+	pclose(fp);
+	config_write(STR(NET_NETMASK), buffer_netmask);
+
+	char buffer_gateway[MAX_BUFFER];
+	//get the gateway and store it
+	fp = popen("route -nee | head -3 | tail -1 | awk '{print $2; }'", "r");
+	analyse_input(fp, buffer_gateway);
+	pclose(fp);
+	config_write(STR(NET_GATEWAY), buffer_gateway);
+
+}
+
 
 // get net settings
 void find_network() {
@@ -225,12 +253,101 @@ void toggle_button_radio_ctxrdp () {
 	
 }
 
+
+// cert choose file
+void click_button_cert_file_choose() {
+	GtkWidget *dialog;
+	gint res;
+
+	char buffer[MAX_BUFFER];
+	char* buffer_usb_path = NULL;
+
+	strcpy(buffer, config_read(STR(USB_PATH)));
+	buffer_usb_path = (char *)malloc(strlen(buffer)+1);
+	strcpy(buffer_usb_path, buffer);
+
+	dialog = gtk_file_chooser_dialog_new ("Choose a certificate",
+                                      GTK_WINDOW(window),
+                                      GTK_FILE_CHOOSER_ACTION_OPEN,
+                                      GTK_STOCK_OK,
+                                      GTK_RESPONSE_OK,
+                                      GTK_STOCK_CANCEL,
+                                      GTK_RESPONSE_CANCEL,
+                                      NULL);
+	gtk_widget_show_all(dialog);
+
+	gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(dialog), TRUE);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), buffer_usb_path);
+	res = gtk_dialog_run (GTK_DIALOG (dialog));
+	if (res == GTK_RESPONSE_OK)
+  	{    		
+		
+    		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+    		filename = gtk_file_chooser_get_filename (chooser);
+		gtk_entry_set_text(GTK_ENTRY(entry_cert_file), filename);
+    		// debugging
+		//printf("%s\n", filename);
+    		
+		
+  	}
+
+	free(buffer_usb_path);
+	gtk_widget_destroy (dialog);
+}
+
+
+// cert save and rehash
+void click_button_cert_save() {
+	FILE *fp1, *fp2;
+	char ch;
+	int pos;
+	char buffer[MAX_BUFFER];
+	char* buffer_filename = NULL;
+
+	// memory management
+	strcpy(buffer, filename);
+	buffer_filename = (char *)malloc(strlen(buffer)+1);
+		
+	// open file that we want to copy
+	fp1 = fopen(filename, "r");
+	
+	buffer_filename = g_path_get_basename(filename);
+	printf("%s\n", buffer_filename);
+	
+	strcpy(buffer, "/etc/ssl/certs/");
+	strcat(buffer, buffer_filename);
+	printf("%s\n", buffer);
+
+	// open new file at target directory
+	fp2 = fopen(buffer, "w");
+
+	// file pointer at end of file
+	fseek(fp1, 0L, SEEK_END);
+	pos = ftell(fp1);
+	// file pointer set at start
+	fseek(fp1, 0L, SEEK_SET);
+
+	// copy file
+	while(pos--) {
+		ch = fgetc(fp1);
+		fputc(ch, fp2);
+	}
+	fcloseall();
+	printf("coping done...");
+
+	// now we have to rehash directory
+	system("c_rehash /etc/ssl/certs/");
+
+	free(buffer_filename);
+}
+
+
 //function quit_window
 void quit_window () {
 	g_print ("quit window");
-//	restart_uzbl();
+
 	gtk_widget_destroy(window);
-//	system("xbindkeys");
+
 }
 
 // hauptfunktion die von main aufgerufen wird
@@ -274,6 +391,16 @@ int main (int argc, char **argv) {
 
 	int status;
 	if (argc > 1) {
+
+		// if asking for network we didn't reach it at first from settings. We fill it at with newer information.
+		if (strcmp(argv[1], "NET_TYPE") == 0) {
+			// only if network type is dhcp we have to get every time  we ask, the latest information
+			if (strcmp(config_read(argv[1]), "DHCP") == 0) {
+				set_network_config();
+				config_save(STR(PATH_CONFIG));
+			}
+		}
+
 		// aufruf mit parameter --> gebe info aus
 		printf("%s\n", config_read(argv[1]));
 

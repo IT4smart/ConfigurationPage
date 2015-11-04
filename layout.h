@@ -8,7 +8,7 @@
 
 	int right;			//all buttons are in column right
 
-	//network
+	// network
 	int network;
 	int network_type;
 	int ip;
@@ -16,20 +16,26 @@
 	int gateway;
 	int network_height;		//the number of columns incl frametitle
 
-	//wlan
+	// wlan
 	int wlan;
 	int active;
 	int ssid;
 	int pw;
 	int wlan_height;
 
-	//ctxrdp
+	// ctxrdp
 	int ctxrdp;
 	int ctxrdp_type;
 	int citrix_link;
 	int rdp_link;
 	int rdp_domain;
 	int ctxrdp_height;
+
+	// cert
+	int cert;
+	int cert_file;
+	int cert_save;
+	int cert_height;
 
 	//quit
 	int quit;
@@ -44,5 +50,6 @@
 	static void set_network();
 	static void set_wlan();
 	static void set_ctxrdp();
+	static void set_cert();
 
 #endif
