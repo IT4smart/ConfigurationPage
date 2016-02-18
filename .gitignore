@@ -1,0 +1,10 @@
+*.swp
+*.log
+*.out 
+*.*~
+*.aux
+*.o
+cmake_test
+#so that all the builds wont be stored everytime
+ConfigPage-build
+
