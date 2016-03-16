@@ -92,8 +92,6 @@ add_executable(
 	${UI_RESOURCES}
 	)
 
-LINK_DIRECTORIES(${CMAKE_BINARY_DIR})
-
 
 #find the library
 find_library(
