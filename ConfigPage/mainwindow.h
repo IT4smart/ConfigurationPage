@@ -34,7 +34,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "./inc/setting.h"
+#include "../../libs/tools/inc/setting.h"
 #include "./inc/profile.h"
 
 namespace Ui {

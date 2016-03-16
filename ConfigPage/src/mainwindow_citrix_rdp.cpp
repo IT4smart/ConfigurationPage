@@ -36,7 +36,7 @@
 #include "../mainwindow.h"
 #include "../ui_mainwindow.h"
 //#include "../inc/errorMsg.h"
-#include "../inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
 
 
 

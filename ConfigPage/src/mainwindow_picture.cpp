@@ -37,8 +37,8 @@
 #include <QDirIterator>
 #include "../mainwindow.h"
 #include "../ui_mainwindow.h"
-#include "../inc/custom_exceptions.h"
-#include "../inc/remove_file.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/remove_file.h"
 #include "../inc/errorMsg.h"
 
 

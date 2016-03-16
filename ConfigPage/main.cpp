@@ -36,7 +36,7 @@
 #include <iostream>
 #include "mainwindow.h"
 #include "./inc/parameter_return.h"
-#include "./inc/custom_exceptions.h" //for the debug <<
+#include "../../libs/tools/inc/custom_exceptions.h" //for the debug <<
 
 
 int main(int argc, char *argv[])

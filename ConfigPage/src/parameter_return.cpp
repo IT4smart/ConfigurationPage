@@ -41,13 +41,13 @@
 #include <regex>
 
 #include "../inc/parameter_return.h"
-#include "../inc/setting.h"
+#include "../../../libs/tools/inc/setting.h"
 #include "../inc/profile.h"
-#include "../inc/custom_exceptions.h"
-#include "../inc/exec_cmd.h"
-#include "../inc/nm_make_functions.h"
-#include "../inc/nm_make_file.h"
-#include "../inc/remove_file.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/exec_cmd.h"
+#include "../../../libs/nm+tools/inc/nm_make_functions.h"
+#include "../../../libs/nm+tools/inc/nm_make_file.h"
+#include "../../../libs/tools/inc/remove_file.h"
 
 
 

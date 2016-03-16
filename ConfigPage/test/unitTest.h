@@ -37,7 +37,7 @@
 
 //included dependencies
 #include <QTest>
-#include "../inc/nm_check_functions.h"
+#include "../../../libs/nm+tools/inc/nm_check_functions.h"
 
 class Test : public QObject {
 	Q_OBJECT

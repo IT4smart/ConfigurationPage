@@ -23,6 +23,8 @@ CTestTestfile.cmake
 Testing
 libConfigPage_*
 ConfigPage_LIB*
+*_automoc.cpp
+*.a
 
 ui_mainwindow.h
 

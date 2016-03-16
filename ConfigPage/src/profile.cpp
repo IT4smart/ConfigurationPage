@@ -11,8 +11,8 @@
 #include <exception>
 #include "../inc/profile.h"
 #include "../inc/errorMsg.h"
-#include "../inc/ini_parser.h"
-#include "../inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/ini_parser.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
 
 Profile::Profile(): mProfilesFolder { }, 
 	//LastProfileName{ }, 

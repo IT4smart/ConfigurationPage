@@ -34,7 +34,7 @@
 #define VERSION_MINOR 0
 
 #include <memory>
-#include "setting.h"
+#include "../../../libs/tools/inc/setting.h"
 #include "profile.h"
 //the parameter won't be changed in the function, therefore a "const"
 void parameter_return(const char* _executable, const char* _input);

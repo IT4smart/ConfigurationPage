@@ -69,10 +69,12 @@ file(GLOB HEADER_FILE
 	"./inc/*.hpp"
 	"./inc/*.h"
 	)
+set(LibName _ConfigPage)
+set(ExeName ConfigPage)
 #make a library out of the used files named: 
 add_library(
 	#name:
-	ConfigPage_LIB
+	${LibName}
 	#sources and headers: (except the main.cpp)
 	mainwindow.cpp
 	mainwindow.h
@@ -81,18 +83,36 @@ add_library(
 	${HEADER_FILE}
 	)
 #use these modules in the library
-qt5_use_modules(ConfigPage_LIB Widgets)
+qt5_use_modules(${LibName} Widgets)
 
 add_executable(
-	ConfigPage
+	${ExeName}
 	main.cpp
 	${UI_HEADERS}
 	${UI_RESOURCES}
 	)
 
+LINK_DIRECTORIES(${CMAKE_BINARY_DIR})
+
+
+#find the library
+find_library(
+	LIB_I_NEED  
+	NAMES lib_NM+Tools.a
+	#PATHS /data/Dokumente/it4s/libs/tools/ 
+	PATHS ../../libs/lib/ 
+)
+
+if(${LIB_I_NEED} STREQUAL "LIB_I_NEED-NOTFOUND")
+    message(FATAL_ERROR "Couldn't find the 'external_lib' library")
+endif()
+
+message(STATUS "Found 'external_lib' at: ${LIB_I_NEED}")
+
 target_link_libraries(
-	ConfigPage
-	ConfigPage_LIB
+	${ExeName}
+	${LibName}
+	${LIB_I_NEED}
 	)
 
 
@@ -114,7 +134,7 @@ target_link_libraries(
 
 
 #qt5_use_modules(BSEd Widgets OpenGL)
-qt5_use_modules(ConfigPage Widgets)
+qt5_use_modules(${ExeName} Widgets)
 
 
 #add_executable(hello_world main.cpp mainwindow.cpp)
@@ -162,7 +182,8 @@ add_test(UnitTest UnitTest)
 #link in the ConfigPage_LIB, so that you don't have to compile every single *.cpp twice
 target_link_libraries(
 	UnitTest 
-	ConfigPage_LIB
+	${LibName}
+	${LIB_I_NEED}
 	Qt5::Test)
 
 ###### test-End ######

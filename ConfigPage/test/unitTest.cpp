@@ -32,9 +32,9 @@
 \******************************************************************************/
 
 #include <QTest>
-#include "../inc/nm_check_functions.h"
+#include "../../../libs/nm+tools/inc/nm_check_functions.h"
 #include "./unitTest.h"
-#include "../inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
 
 //for installation: 	http://stackoverflow.com/questions/4753845/build-qt-tests-with-cmake
 //for testing examples: http://doc.qt.io/qt-5/qtest-tutorial.html
