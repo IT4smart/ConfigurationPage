@@ -115,7 +115,10 @@ void return_profile_info(const char *_executable, std::string input)
 
 
 	//read out the profile and setting
-	QString system 	= setting.get()->getSetting().value("system").value("system");
+	QString system 		= setting.get()->getSetting().value("system").value("system");
+	QString client_logo_path= setting.get()->getSetting().value("path").value("path_client_logo");
+	QString client_logo 	= setting.get()->getSetting().value("profile").value("last_client_logo");
+	client_logo 		= client_logo_path + "/" + client_logo;
 
 	auto& profile_map = profile.get()->getProfile();
 	QString profile_name	= profile_map.value("global")	.value("profile_name");
@@ -145,7 +148,8 @@ void return_profile_info(const char *_executable, std::string input)
 
 	//citrix&rdp
 	QString citrix_rdp_type	= profile_map.value("citrix&rdp")	.value("citrix_rdp_type");
-	QString citrix		= profile_map.value("citrix&rdp")	.value("citrix_rdp_citrix");
+	QString citrix_store	= profile_map.value("citrix&rdp")	.value("citrix_rdp_citrix_store");
+	QString citrix_url	= profile_map.value("citrix&rdp")	.value("citrix_rdp_citrix_url");
 	QString rdp_server 	= profile_map.value("citrix&rdp")	.value("citrix_rdp_rdp_server");
 	QString rdp_domain 	= profile_map.value("citrix&rdp")	.value("citrix_rdp_rdp_domain");
 
@@ -171,7 +175,8 @@ void return_profile_info(const char *_executable, std::string input)
 			<< "\n" <<
 			//citrix&rdp
 			"citrix_rdp_type:\t" 	<< citrix_rdp_type << "\n" <<
-			"citrix:\t\t\t" 	<< citrix << "\n" <<
+			"citrix_store:\t\t" 	<< citrix_store << "\n" <<
+			"citrix_url:\t\t" 	<< citrix_url << "\n" <<
 			"rdp_server:\t\t" 	<< rdp_server << "\n" <<
 			"rdp_domain:\t\t" 	<< rdp_domain << "\n" 
 			<< "\n"; 
@@ -180,6 +185,8 @@ void return_profile_info(const char *_executable, std::string input)
 		//system & profile_name
 	} else if (input == "system") {
 		std::cout << system << std::endl;
+	} else if (input == "client_logo") {
+		std::cout << client_logo << std::endl;	
 	} else if (input == "profile_name") {
 		std::cout << profile_name << std::endl;
 		//network
@@ -251,8 +258,10 @@ void return_profile_info(const char *_executable, std::string input)
 		//citrix&rdp
 	} else if (input == "citrix_rdp_type") {
 		std::cout << citrix_rdp_type << std::endl;
-	} else if (input == "citrix") {
-		std::cout << citrix << std::endl;
+	} else if (input == "citrix_store") {
+		std::cout << citrix_store << std::endl;
+	} else if (input == "citrix_url") {
+		std::cout << citrix_url << std::endl;
 	} else if (input == "rdp_server") {
 		std::cout << rdp_server << std::endl;
 	} else if (input == "rdp_domain") {
@@ -358,6 +367,7 @@ void print_help(const char *_executable)
 		<< "\n" << "\t[GENERAL]\n"
 		<< "\n" << "\tprofile_info		Print all information from the profile (ip, etc; no system-call used)" 
 		<< "\n" << "\tsystem			Print the used system out of the setting.ini" 
+		<< "\n" << "\tclient_logo		Print the path + name of the client_logo" 
 		<< "\n" << "\trenew_nm		needs root-rights (sudo)"
 		<< "\n" << "\t\t			Create the NetworkManager-file(s) of the current Profile and restart it" 
 		<< "\n" << "\t\t			Exceptions are saved in the logfiles with '_terminal' suffix" 
@@ -403,7 +413,8 @@ void print_help(const char *_executable)
 	std::cout 
 		<< "\n" << "\n\t[CITRIX&RDP]\n"
 		<< "\n" << "\tcitrix_rdp_type		citrix or rdp" 		
-		<< "\n" << "\tcitrix			citrix-url" 		
+		<< "\n" << "\tcitrix_store		citrix-store" 		
+		<< "\n" << "\tcitrix_url		citrix-url" 		
 		<< "\n" << "\trdp_server		rdp-server" 		
 		<< "\n" << "\trdp_domain		rdp-domain" 		
 		<< "\n";

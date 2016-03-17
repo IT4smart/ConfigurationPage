@@ -57,7 +57,8 @@ void MainWindow::activate_btn_citrix_rdp(bool input)
  */
 void MainWindow::activate_citrix(bool input)
 {
-	ui->txb_citrix_rdp_citrix 	->setEnabled(input);
+	ui->txb_citrix_rdp_citrix_store	->setEnabled(input);
+	ui->txb_citrix_rdp_citrix_url 	->setEnabled(input);
 }
 
 /**
@@ -77,12 +78,10 @@ void MainWindow::activate_rdp(bool input)
  */
 bool check_for_empty_or_whitespace(QString input)
 {
-	
 	std::regex pat {R"(^\s+$)"};	
 	if (input == "" || std::regex_match(input.toStdString(), pat)) 
 		return true;
 	return false;
-
 }
 
 
@@ -96,7 +95,8 @@ bool MainWindow::check_citrix_rdp_input() {
 	bool isOK = true;
 
 	try {
-		QString citrix 		= ui->txb_citrix_rdp_citrix->text();
+		QString citrix_store 	= ui->txb_citrix_rdp_citrix_store->text();
+		QString citrix_url 	= ui->txb_citrix_rdp_citrix_url->text();
 		QString rdp_server 	= ui->txb_citrix_rdp_rdp_server->text();
 		QString rdp_domain 	= ui->txb_citrix_rdp_rdp_domain->text();
 
@@ -107,21 +107,25 @@ bool MainWindow::check_citrix_rdp_input() {
 			// Second map is a map.
 			auto& second_map = first_level.value();
 			//        Q_ASSERT( second_map.find("network_i") != second_map.end() ); //doesn't throw an error
-			assert( second_map.find("citrix_rdp_citrix") 		!= second_map.end() );
-			*( second_map.find("citrix_rdp_citrix") ) 		= citrix;
+			assert( second_map.find("citrix_rdp_citrix_store") 	!= second_map.end() );
+			*( second_map.find("citrix_rdp_citrix_store") ) 	= citrix_store;
+
+			assert( second_map.find("citrix_rdp_citrix_url") 	!= second_map.end() );
+			*( second_map.find("citrix_rdp_citrix_url") ) 		= citrix_url;
+
 
 			assert( second_map.find("citrix_rdp_rdp_server") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_rdp_server") ) 	= rdp_server;
+			*( second_map.find("citrix_rdp_rdp_server") ) 		= rdp_server;
 
 			assert( second_map.find("citrix_rdp_rdp_domain") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_rdp_domain") ) 	= rdp_domain;
+			*( second_map.find("citrix_rdp_rdp_domain") ) 		= rdp_domain;
 
 
 			assert( second_map.find("citrix_rdp_type") != second_map.end() );
 			if (ui->rdb_citrix_rdp_type_citrix->isChecked()) {
 				*( second_map.find("citrix_rdp_type") ) 	= "citrix";
 				//check for empty string
-				if (check_for_empty_or_whitespace(citrix))
+				if (check_for_empty_or_whitespace(citrix_store) || check_for_empty_or_whitespace(citrix_url))
 					throw customer_error(std::string("Citrix-URL mustn't be empty"));
 
 			} else if  (ui->rdb_citrix_rdp_type_rdp->isChecked()) {
@@ -133,7 +137,7 @@ bool MainWindow::check_citrix_rdp_input() {
 				throw customer_error(std::string("Citrix or RDP must be selected"));
 			}
 		} else {
-			throw customer_error(std::string("Please select a valid Profile"));
+			throw customer_error(std::string("Please select a valid Profile: Problem with can't find citrix&rdp section in profile"));
 		}
 
 	} catch(const developer_error& e) {

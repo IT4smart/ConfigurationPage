@@ -89,6 +89,7 @@ void MainWindow::readInProfiles(std::string s_profilesFolder)
 
 
 /**
+ * TODO divide this into diffrent file: e.g. everything with citrix in mainwindow_citrix...
  *  print all information of the current profile to the GUI
  */
 void MainWindow::printProfile()
@@ -154,7 +155,8 @@ void MainWindow::printProfile()
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
-	ui->txb_citrix_rdp_citrix	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_citrix"));
+	ui->txb_citrix_rdp_citrix_store	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_citrix_store"));
+	ui->txb_citrix_rdp_citrix_url	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_citrix_url"));
 	ui->txb_citrix_rdp_rdp_server	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_rdp_server"));
 	ui->txb_citrix_rdp_rdp_domain	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_rdp_domain"));
 }

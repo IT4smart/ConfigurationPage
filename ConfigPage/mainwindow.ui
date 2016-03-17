@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>830</width>
-    <height>784</height>
+    <width>862</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -40,7 +40,7 @@
      <rect>
       <x>20</x>
       <y>140</y>
-      <width>781</width>
+      <width>831</width>
       <height>161</height>
      </rect>
     </property>
@@ -163,7 +163,7 @@
     <widget class="QPushButton" name="btn_change_network">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>690</x>
        <y>130</y>
        <width>130</width>
        <height>27</height>
@@ -205,7 +205,7 @@
      <rect>
       <x>20</x>
       <y>320</y>
-      <width>781</width>
+      <width>831</width>
       <height>111</height>
      </rect>
     </property>
@@ -276,7 +276,7 @@
     <widget class="QPushButton" name="btn_change_wlan">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>690</x>
        <y>80</y>
        <width>130</width>
        <height>27</height>
@@ -303,8 +303,8 @@
    <widget class="QPushButton" name="btn_cancel">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>730</y>
+      <x>550</x>
+      <y>710</y>
       <width>130</width>
       <height>27</height>
      </rect>
@@ -339,8 +339,8 @@
    <widget class="QPushButton" name="btn_save_quit">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>730</y>
+      <x>710</x>
+      <y>710</y>
       <width>130</width>
       <height>27</height>
      </rect>
@@ -384,7 +384,7 @@
    <widget class="QLabel" name="lb_picture_right">
     <property name="geometry">
      <rect>
-      <x>709</x>
+      <x>740</x>
       <y>10</y>
       <width>100</width>
       <height>100</height>
@@ -415,31 +415,31 @@
      <rect>
       <x>20</x>
       <y>450</y>
-      <width>781</width>
+      <width>831</width>
       <height>151</height>
      </rect>
     </property>
     <property name="title">
      <string>Citrix &amp;&amp; RDP</string>
     </property>
-    <widget class="QLabel" name="lb_citrix_rdp_citrix">
+    <widget class="QLabel" name="lb_citrix_rdp_citrix_store">
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>43</y>
+       <y>40</y>
        <width>71</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
-      <string>Citrix-URL:</string>
+      <string>Citrix-Store:</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="txb_citrix_rdp_citrix">
+    <widget class="QLineEdit" name="txb_citrix_rdp_citrix_store">
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>40</y>
+       <y>37</y>
        <width>201</width>
        <height>27</height>
       </rect>
@@ -454,7 +454,7 @@
     <widget class="QPushButton" name="btn_change_citrix_rdp">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>690</x>
        <y>120</y>
        <width>130</width>
        <height>27</height>
@@ -467,8 +467,8 @@
     <widget class="QLineEdit" name="txb_citrix_rdp_rdp_domain">
      <property name="geometry">
       <rect>
-       <x>230</x>
-       <y>120</y>
+       <x>620</x>
+       <y>80</y>
        <width>201</width>
        <height>27</height>
       </rect>
@@ -483,8 +483,8 @@
     <widget class="QLabel" name="lb_citrix_rdp_rdp_domain">
      <property name="geometry">
       <rect>
-       <x>92</x>
-       <y>123</y>
+       <x>483</x>
+       <y>83</y>
        <width>91</width>
        <height>20</height>
       </rect>
@@ -496,8 +496,8 @@
     <widget class="QLineEdit" name="txb_citrix_rdp_rdp_server">
      <property name="geometry">
       <rect>
-       <x>230</x>
-       <y>80</y>
+       <x>620</x>
+       <y>40</y>
        <width>201</width>
        <height>27</height>
       </rect>
@@ -512,14 +512,43 @@
     <widget class="QLabel" name="lb_citrix_rdp_rdp_server">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>83</y>
+       <x>490</x>
+       <y>43</y>
        <width>81</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
       <string>RDP-Server:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txb_citrix_rdp_citrix_url">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>77</y>
+       <width>201</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>default</string>
+     </property>
+     <property name="maxLength">
+      <number>32767</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_citrix_rdp_citrix_url">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>80</y>
+       <width>71</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Citrix-URL:</string>
      </property>
     </widget>
    </widget>
@@ -539,7 +568,7 @@
    <widget class="QRadioButton" name="rdb_citrix_rdp_type_rdp">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>640</x>
       <y>460</y>
       <width>71</width>
       <height>22</height>
@@ -554,7 +583,7 @@
      <rect>
       <x>20</x>
       <y>620</y>
-      <width>781</width>
+      <width>831</width>
       <height>81</height>
      </rect>
     </property>
@@ -564,7 +593,7 @@
     <widget class="QPushButton" name="btn_pictures">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>690</x>
        <y>10</y>
        <width>130</width>
        <height>27</height>
@@ -619,7 +648,7 @@
     <widget class="QPushButton" name="btn_certificates">
      <property name="geometry">
       <rect>
-       <x>640</x>
+       <x>690</x>
        <y>50</y>
        <width>130</width>
        <height>27</height>
@@ -636,7 +665,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>830</width>
+     <width>862</width>
      <height>19</height>
     </rect>
    </property>
