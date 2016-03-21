@@ -116,6 +116,8 @@ void return_profile_info(const char *_executable, std::string input)
 
 	//read out the profile and setting
 	QString system 		= setting.get()->getSetting().value("system").value("system");
+	QString language	= setting.get()->getSetting().value("system").value("language");
+	QString keyboard	= setting.get()->getSetting().value("system").value("keyboard");
 	QString client_logo_path= setting.get()->getSetting().value("path").value("path_client_logo");
 	QString client_logo 	= setting.get()->getSetting().value("profile").value("last_client_logo");
 	client_logo 		= client_logo_path + "/" + client_logo;
@@ -157,6 +159,8 @@ void return_profile_info(const char *_executable, std::string input)
 	if (input == "profile_info") {
 		std::cout << 
 			"system:\t\t\t" 	<< system << "\n" <<
+			"language:\t\t\t" 	<< language << "\n" <<
+			"keyboard:\t\t\t" 	<< keyboard << "\n" <<
 			"profile_name:\t\t" 	<< profile_name << "\n" 
 			<< "\n" <<
 			//network
@@ -185,6 +189,10 @@ void return_profile_info(const char *_executable, std::string input)
 		//system & profile_name
 	} else if (input == "system") {
 		std::cout << system << std::endl;
+	} else if (input == "language") {
+		std::cout << language << std::endl;
+	} else if (input == "keyboard") {
+		std::cout << keyboard << std::endl;
 	} else if (input == "client_logo") {
 		std::cout << client_logo << std::endl;	
 	} else if (input == "profile_name") {
@@ -367,6 +375,8 @@ void print_help(const char *_executable)
 		<< "\n" << "\t[GENERAL]\n"
 		<< "\n" << "\tprofile_info		Print all information from the profile (ip, etc; no system-call used)" 
 		<< "\n" << "\tsystem			Print the used system out of the setting.ini" 
+		<< "\n" << "\tlanguage			Print the used language out of the setting.ini" 
+		<< "\n" << "\tkeyboard			Print the used keyboard out of the setting.ini" 
 		<< "\n" << "\tclient_logo		Print the path + name of the client_logo" 
 		<< "\n" << "\trenew_nm		needs root-rights (sudo)"
 		<< "\n" << "\t\t			Create the NetworkManager-file(s) of the current Profile and restart it" 

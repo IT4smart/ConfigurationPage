@@ -54,6 +54,11 @@
  *  @return Vector of Strings with all profile names in the profile Folder
  */
 
+/*TODO
+ *	setting.ini so machen, dass diese die aktuell gespeicherten sachen wie profile abspeichert und diese nicht übergeben werden. 
+ *	dann kann man die gleiche klasse verwenden für profile, setting und language
+ *
+ */
 
 
 /**

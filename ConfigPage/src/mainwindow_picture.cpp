@@ -78,6 +78,7 @@ QStringList MainWindow::readInPictures()
 			QDirIterator::Subdirectories);
 	QList<QString> list;
 	while (it.hasNext()) {
+		//take only the last token
 		QString fl = it.next().split("/").back();
 		if( !fl.startsWith(".") && !fl.startsWith("..")) {
 			list.append(fl);
