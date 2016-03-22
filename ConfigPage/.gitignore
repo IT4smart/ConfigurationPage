@@ -26,6 +26,6 @@ ConfigPage_LIB*
 *_automoc.cpp
 *.a
 
-ui_mainwindow.h
+#ui_mainwindow.h
 
 Vortrag/presentation.*
