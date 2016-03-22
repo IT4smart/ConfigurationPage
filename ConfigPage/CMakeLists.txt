@@ -98,7 +98,8 @@ find_library(
 	LIB_I_NEED  
 	NAMES lib_NM+Tools.a
 	#PATHS /data/Dokumente/it4s/libs/tools/ 
-	PATHS ../../libs/lib/ 
+	#PATHS ../../libs/lib/ 
+	PATHS ../../libs/nm+tools/ 
 )
 
 if(${LIB_I_NEED} STREQUAL "LIB_I_NEED-NOTFOUND")
