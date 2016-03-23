@@ -160,39 +160,25 @@ bool MainWindow::check_wlan_input() {
 		if (ui->chk_wlan_active->isChecked())
 			passwd = nm_make_encrypt_password(ssid, passwd);
 
-		auto& profile_map = profile.getProfile();
-		// First level is an iterator.
-		auto first_level = profile_map.find("wlan");
-		if( first_level != profile_map.end() ) {
-			// Second map is a map.
-			auto& second_map = first_level.value();
-			assert( second_map.find("wlan_ssid") 	!= second_map.end() );
-			*( second_map.find("wlan_ssid") ) 	= ssid;
-
-			assert( second_map.find("wlan_passwd") 	!= second_map.end() );
-			*( second_map.find("wlan_passwd") ) 	= passwd;
-
-			assert( second_map.find("wlan_active") 	!= second_map.end() );
-			if (ui->chk_wlan_active->isChecked())
-				*( second_map.find("wlan_active") ) = "true";
-			else
-				*( second_map.find("wlan_active") ) = "false";
-
-		} else {
-			throw customer_error(std::string("Please select a valid Profile"));
-		}
+		//set content
+		profile.set_Map_Value("wlan", "wlan_ssid", ssid);
+		profile.set_Map_Value("wlan", "wlan_passwd", passwd);
+		//active?
+		if (ui->chk_wlan_active->isChecked())
+			profile.set_Map_Value("wlan", "wlan_active", "true");
+		else
+			profile.set_Map_Value("wlan", "wlan_active", "false");
 
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 		isOK = false;
 	} catch(const customer_error& e) {
-		//print into an error-box on screen
 		handle_customer_error(e);
 		isOK = false;
 	}
-
 	return isOK;
 }
+
 /**
  * TODO content is nearly the same as in parameter_return.cpp renew_nm_terminal(...), caution with changes
  * create the networkmanager-files and restart the nm-service
@@ -202,8 +188,8 @@ bool MainWindow::renew_nm() {
 
 	bool isOK = true;
 	try {
-		QString path 	= setting.getSetting().value("path").value("path_networkmanager");
-		QString system 	= setting.getSetting().value("system").value("system");
+		QString path 	= setting.get_Map_Value("path", "path_networkmanager");
+		QString system 	= setting.get_Map_Value("system", "system");
 
 		auto& profile_map = profile.getProfile();
 		QString ip 		= profile_map.value("network")	.value("network_ip");

@@ -44,7 +44,7 @@
 #include "ui_mainwindow.h"
 #include "./inc/errorMsg.h"
 #include "../../libs/tools/inc/custom_exceptions.h"
-
+#include "../../libs/tools/inc/paths.h" //for path to setting.ini
 
 //TODO DOCUMENTATION LIKE THIS:
 /**
@@ -59,6 +59,10 @@
  *	dann kann man die gleiche klasse verwenden für profile, setting und language
  *
  */
+/**
+ * mainwindow_profile.cpp TODO abarbeiten
+ * TODO log file folder automatisch erstellen
+ */
 
 
 /**
@@ -68,7 +72,8 @@
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	setting{}, profile{}
+	setting{}, 
+	profile{}
 {
 	ui->setupUi(this);
 
@@ -88,25 +93,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	// loads global settings of setting.ini
 	try {
-		setting.loadSettings();
+		setting = IniFile(SETTING_PATH, SETTING_FILE, SETTING_ENDING);
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
 
 
 	// load last profile
-	QString profilesFolder 	= setting.getSetting().value("path").value("path_profiles");
-	profile.setProfileFolderName(profilesFolder);
-	try {
-		profile.loadProfile(setting.getSetting().value("profile").value("last_profile") );
-			//profile.setLastProfileName( setting.getSetting().value("profile").value("last_profile") );
-			//profile.loadProfile(profile.getLastProfileName());
-	} catch(const developer_error& e) {
-		handle_developer_error(e);
-	}	
+	reload_profile();
+
 
 	// set profile option in setting.ini
-	setDrDwProfilesOpt(profilesFolder.toStdString());
+	setDrDwProfilesOpt();
 
 	// read in the last profile and show all information on the screen
 	// check if there is an useable wlan
@@ -125,13 +123,19 @@ MainWindow::~MainWindow()
 }
 
 
-
 /**
  *  save the last used profile and client logo as default 
+ *  sets these values in the MapMap of setting and saves it to the IniFile on disk
  */
 void MainWindow::save_last_profile_and_client_logo() {
-		// save last used profile as default
-		setting.saveSettings(ui->drdw_profiles->currentText(), ui->drdw_pictures->currentText());
+	// save last used profile as default
+	try {
+		setting.set_Map_Value("profile", "last_profile", ui->drdw_profiles->currentText());
+		setting.set_Map_Value("profile", "last_client_logo", ui->drdw_pictures->currentText());
+		setting.save_Map_to_IniFile();
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
 }
 
 
@@ -166,9 +170,16 @@ void MainWindow::on_btn_save_quit_clicked()
 {
 	//check for network, wlan, citrix. In these functions the Map will be updated and exceptions are handled
 	if (check_network_input() && check_wlan_input() && check_citrix_rdp_input()) {
-		//make new nm-file(s) and restart nm, if this worked, try to save profile to harddisk
-		//renwe_nm & save_profile.. throw and catch their exceptions
-		if (renew_nm() && save_profile_to_harddisk()) {
+		//try to save profile to harddisk
+		try {
+			profile.save_Map_to_IniFile();
+		} catch(const developer_error& e) {
+			handle_developer_error(e);
+			return;
+		}
+		//if this worked, make new nm-file(s) and restart nm,
+		//renwe_nm throw and catch its exceptions
+		if (renew_nm()) {
 			//save this profile as the last profile only if everything worked fine
 			//and the last used client logo
 			save_last_profile_and_client_logo();
@@ -345,7 +356,8 @@ void MainWindow::on_btn_new_profile_clicked() {
 void MainWindow::on_drdw_profiles_activated(const QString &profile_Name) 
 {
 	try {
-		profile.loadProfile(profile_Name);
+		//set the name and reload Map
+		profile.set_IniFile_Name(profile_Name);
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
@@ -394,8 +406,8 @@ void MainWindow::on_btn_pictures_delete_clicked()
  */
 void MainWindow::on_btn_pictures_clicked()
 {
-	QString usbPath = this->setting.getSetting ().value ("path").value ("path_usb");
-	QString outPath = this->setting.getSetting ().value ("path").value ("path_client_logo");
+	QString usbPath = setting.get_Map_Value("path", "path_usb");
+	QString outPath = setting.get_Map_Value("path", "path_client_logo");
 
 	FileSystemModelDialog *dialog = new FileSystemModelDialog(this, usbPath, outPath, false,
 								 ui->drdw_pictures, ui->lb_picture_left);	
@@ -416,6 +428,7 @@ void MainWindow::selectNewPicture(const QString &logo)
 {
 	ui->drdw_pictures->clear ();
 	//read in and sort all the pictures of client logos and put them into the drdw
+		//profile.loadProfile(setting.get_Map_Value("profile", "last_profile"));
 	setDrDwPicturesList(readInPictures());
 	ui->drdw_pictures->setCurrentText(logo);
 }
@@ -432,8 +445,8 @@ void MainWindow::selectNewPicture(const QString &logo)
  */
 void MainWindow::on_btn_certificates_clicked()
 {
-	QString usbPath = this->setting.getSetting ().value ("path").value ("path_usb");
-	QString outPath = this->setting.getSetting ().value ("path").value ("path_certificates");
+	QString usbPath = setting.get_Map_Value("path", "path_usb");
+	QString outPath = setting.get_Map_Value("path", "path_certificates");
 	//unique_ptr not possbile, because directly running out of scope without even having seen the dialog
 	FileSystemModelDialog* dialog = new FileSystemModelDialog(this, usbPath, outPath, true);
 	dialog->resize (700,500);

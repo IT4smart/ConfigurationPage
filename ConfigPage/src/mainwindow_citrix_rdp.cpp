@@ -94,51 +94,34 @@ bool MainWindow::check_citrix_rdp_input() {
 
 	bool isOK = true;
 
+	QString citrix_store 	= ui->txb_citrix_rdp_citrix_store->text();
+	QString citrix_url 	= ui->txb_citrix_rdp_citrix_url->text();
+	QString rdp_server 	= ui->txb_citrix_rdp_rdp_server->text();
+	QString rdp_domain 	= ui->txb_citrix_rdp_rdp_domain->text();
 	try {
-		QString citrix_store 	= ui->txb_citrix_rdp_citrix_store->text();
-		QString citrix_url 	= ui->txb_citrix_rdp_citrix_url->text();
-		QString rdp_server 	= ui->txb_citrix_rdp_rdp_server->text();
-		QString rdp_domain 	= ui->txb_citrix_rdp_rdp_domain->text();
+		//set the type
+		if (ui->rdb_citrix_rdp_type_citrix->isChecked()) {
+			//check for empty string
+			if (check_for_empty_or_whitespace(citrix_store) || check_for_empty_or_whitespace(citrix_url))
+				throw customer_error(std::string("Citrix-URL mustn't be empty"));
+			//set the citrix_rdp_type to citrix
+			profile.set_Map_Value("citrix&rdp", "citrix_rdp_type", "citrix");
 
-		auto& profile_map = profile.getProfile();
-		// First level is an iterator.
-		auto first_level = profile_map.find("citrix&rdp");
-		if( first_level != profile_map.end() ) {
-			// Second map is a map.
-			auto& second_map = first_level.value();
-			//        Q_ASSERT( second_map.find("network_i") != second_map.end() ); //doesn't throw an error
-			assert( second_map.find("citrix_rdp_citrix_store") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_citrix_store") ) 	= citrix_store;
-
-			assert( second_map.find("citrix_rdp_citrix_url") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_citrix_url") ) 		= citrix_url;
-
-
-			assert( second_map.find("citrix_rdp_rdp_server") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_rdp_server") ) 		= rdp_server;
-
-			assert( second_map.find("citrix_rdp_rdp_domain") 	!= second_map.end() );
-			*( second_map.find("citrix_rdp_rdp_domain") ) 		= rdp_domain;
-
-
-			assert( second_map.find("citrix_rdp_type") != second_map.end() );
-			if (ui->rdb_citrix_rdp_type_citrix->isChecked()) {
-				*( second_map.find("citrix_rdp_type") ) 	= "citrix";
-				//check for empty string
-				if (check_for_empty_or_whitespace(citrix_store) || check_for_empty_or_whitespace(citrix_url))
-					throw customer_error(std::string("Citrix-URL mustn't be empty"));
-
-			} else if  (ui->rdb_citrix_rdp_type_rdp->isChecked()) {
-				*( second_map.find("citrix_rdp_type") ) 	= "rdp";
-				//check for empty string
-				if (check_for_empty_or_whitespace(rdp_server) || check_for_empty_or_whitespace(rdp_domain))
-					throw customer_error(std::string("RDP-Server or RDP-Domain mustn't be empty"));
-			} else {
-				throw customer_error(std::string("Citrix or RDP must be selected"));
-			}
+		} else if  (ui->rdb_citrix_rdp_type_rdp->isChecked()) {
+			//check for empty string
+			if (check_for_empty_or_whitespace(rdp_server) || check_for_empty_or_whitespace(rdp_domain))
+				throw customer_error(std::string("RDP-Server or RDP-Domain mustn't be empty"));
+			//set the citrix_rdp_type to rdp
+			profile.set_Map_Value("citrix&rdp", "citrix_rdp_type", "rdp");
 		} else {
-			throw customer_error(std::string("Please select a valid Profile: Problem with can't find citrix&rdp section in profile"));
+			throw customer_error(std::string("Citrix or RDP must be selected"));
 		}
+
+		//set all contents
+		profile.set_Map_Value("citrix&rdp", "citrix_rdp_citrix_store", citrix_store);
+		profile.set_Map_Value("citrix&rdp", "citrix_rdp_citrix_url", citrix_url);
+		profile.set_Map_Value("citrix&rdp", "citrix_rdp_rdp_server", rdp_server);
+		profile.set_Map_Value("citrix&rdp", "citrix_rdp_rdp_domain", rdp_domain);
 
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
@@ -147,7 +130,6 @@ bool MainWindow::check_citrix_rdp_input() {
 		handle_customer_error(e);
 		isOK = false;
 	}
-
 	return isOK;
 }
 

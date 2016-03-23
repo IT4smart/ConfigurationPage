@@ -62,7 +62,7 @@ void MainWindow::handle_developer_error(const std::exception& e)
  */
 void MainWindow::handle_developer_error(const std::exception& e, bool customer_msg)
 {
-	QString logFolder 	= setting.getSetting().value("path").value("path_log");
+	QString logFolder 	= setting.get_Map_Value("path", "path_log");
 	
 	try {
 		//if something with the log-file goes wrong, we can still see the error

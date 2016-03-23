@@ -34,7 +34,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "../../libs/tools/inc/setting.h"
+#include "../../libs/tools/inc/IniFile.h"
 #include "./inc/profile.h"
 
 namespace Ui {
@@ -79,22 +79,21 @@ class MainWindow : public QMainWindow
 
 		//mainwindow_profile.cpp
 		//profile
-		void readInProfiles(std::string s_profilesFolder);
+		void reload_profile();
 		void printProfile();
 		void delProfile();
 		void new_profile_clicked();
 		void save_new_profile_clicked();
-		bool updateProfileMap();
-		bool save_profile_to_harddisk();
+		void check_input_and_save_new_profile();
 
 
 		//DrDw-Profiles
 		void setDefaultSettingButtonsProfile();
-		void setDrDwProfilesList(		QList<QString>& listOfProfiles);
-		void setDrDwProfilesOpt(		std::string s_profilesFolder);
+		void setDrDwProfilesList(		QList<QString> listOfProfiles);
+		void setDrDwProfilesOpt();
 		void setDrDwProfilesOne();
-		void setDrDwProfilesCurrent(	std::string s_profilesFolder);
-		void setDrDwProfilesCurrentNew(	std::string s_profilesFolder);
+		void setDrDwProfilesCurrent();
+		void setDrDwProfilesCurrentNew();
 
 		//mainwindow_nm_network_wlan.cpp
 		//nm_network_wlan
@@ -153,8 +152,8 @@ class MainWindow : public QMainWindow
 private:
 		// caused by the change of the user and not only by manually indexChange
 		Ui::MainWindow *ui;
-		Setting setting;
-		Profile profile;
+		IniFile setting;
+		IniFile profile;
 
 };
 

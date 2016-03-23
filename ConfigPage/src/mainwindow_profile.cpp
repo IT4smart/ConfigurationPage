@@ -42,6 +42,7 @@
 #include "../inc/errorMsg.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 #include "../../../libs/tools/inc/remove_file.h"
+#include "../../../libs/tools/inc/ini_parser.h"
 
 
 
@@ -52,39 +53,22 @@
 |******************************************************************************|
 \******************************************************************************/
 
-//TODO unique_ptr with deleter
 /**
- *  read in the names of all possible profile in the profiles folder
- *  and sort these entries alphabetically
- *  @param s_profilesFolder directory of the folder in which the profiles lie in
- *  @return list with all profile names in the profile Folder
+ * reload the profile with the folder, last_profile and profile_ending saved in setting.MapMap
+ * via IniFile constructor
  */
-void MainWindow::readInProfiles(std::string s_profilesFolder)
-{
-	// read in all profiles
-	DIR *pDIR;
-	struct dirent *entry;
-	if( (pDIR=opendir(s_profilesFolder.c_str())) ) {
-		while( (entry = readdir(pDIR)) ) {
-			if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 ) {
-				//look only for the filenames of the right regular expression
-				std::string temp = entry->d_name;
-				std::regex pat {R"(\w+.*[_profile.ini])"}; 
-					//at least one leading letter/digit/underscore, then arbitrary things .*, in the end _profile.ini
-				std::smatch matches; //matched strings go here
-				if( std::regex_match(temp, pat)) { //select strings only with pat in i
-					std::string delimiter 	= "_profile.ini";
-					std::string token 	= temp.substr(0, temp.find(delimiter)); // token is "profile_name"
-					//std::cout << token << std::endl;
-					profile.getmListOfProfilesName().push_back(token.data());
-				}
-			}
-		}
-		closedir(pDIR);
-	}
-	// sort the profiles alphabetically
-	std::sort(profile.getmListOfProfilesName().begin(), profile.getmListOfProfilesName().end());
+void MainWindow::reload_profile() {
+	// load last profile
+	QString profilesFolder 	= setting.get_Map_Value("path", "path_profiles");
+	QString profilesLast 	= setting.get_Map_Value("profile", "last_profile");
+	QString profilesEnding 	= setting.get_Map_Value("profile", "profile_ending");
+	try {
+		profile = IniFile(profilesFolder, profilesLast, profilesEnding);
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}	
 }
+
 
 
 
@@ -95,7 +79,7 @@ void MainWindow::readInProfiles(std::string s_profilesFolder)
 void MainWindow::printProfile()
 {
 	//network
-	QString network_type = profile.getProfile().value("network").value("network_type");
+	QString network_type = profile.get_Map_Value("network", "network_type");
 	//check for dhcp or static, otherwise throw exception
 	try {
 		if (network_type == "dhcp") {
@@ -106,7 +90,7 @@ void MainWindow::printProfile()
 		} else {
 			//converting from QString to string
 			std::string s_network_type = network_type.toStdString();
-			std::string s_profile_name = profile.getProfile().value("global").value("profile_name").toStdString();
+			std::string s_profile_name = profile.get_Map_Value("global", "profile_name").toStdString();
 			//throw an exception
 			throw developer_error(
 					std::string("Error: network_type '") + s_network_type +
@@ -117,24 +101,24 @@ void MainWindow::printProfile()
 		handle_developer_error(e);
 	}
 
-	ui->txb_network_ip	->setText(profile.getProfile().value("network").value("network_ip"));
-	ui->txb_network_netmask	->setText(profile.getProfile().value("network").value("network_netmask"));
-	ui->txb_network_gateway ->setText(profile.getProfile().value("network").value("network_gateway"));
-	ui->txb_network_dns 	->setText(profile.getProfile().value("network").value("network_dns"));
+	ui->txb_network_ip	->setText(profile.get_Map_Value("network", "network_ip"));
+	ui->txb_network_netmask	->setText(profile.get_Map_Value("network", "network_netmask"));
+	ui->txb_network_gateway ->setText(profile.get_Map_Value("network", "network_gateway"));
+	ui->txb_network_dns 	->setText(profile.get_Map_Value("network", "network_dns"));
 
 	//wlan
 	//check if wlan is active
-	if (profile.getProfile().value("wlan").value("wlan_active") == "true" )
+	if (profile.get_Map_Value("wlan", "wlan_active") == "true" )
 		ui->chk_wlan_active	->setChecked(true);
 	else
 		ui->chk_wlan_active	->setChecked(false);
 
 	on_chk_wlan_active_clicked();
-	ui->txb_wlan_ssid	->setText(profile.getProfile().value("wlan").value("wlan_ssid"));
-	ui->txb_wlan_passwd	->setText(profile.getProfile().value("wlan").value("wlan_passwd"));
+	ui->txb_wlan_ssid	->setText(profile.get_Map_Value("wlan", "wlan_ssid"));
+	ui->txb_wlan_passwd	->setText(profile.get_Map_Value("wlan", "wlan_passwd"));
 	
 	//citrix&rdp
-	QString citrix_rdp_type = profile.getProfile().value("citrix&rdp").value("citrix_rdp_type");
+	QString citrix_rdp_type = profile.get_Map_Value("citrix&rdp", "citrix_rdp_type");
 	//check for dhcp or static, otherwise throw exception
 	try {
 		if (citrix_rdp_type == "citrix") {
@@ -145,7 +129,7 @@ void MainWindow::printProfile()
 		} else {
 			//converting from QString to string
 			std::string s_citrix_rdp_type = citrix_rdp_type.toStdString();
-			std::string s_profile_name = profile.getProfile().value("global").value("profile_name").toStdString();
+			std::string s_profile_name = profile.get_Map_Value("global", "profile_name").toStdString();
 			//throw an exception
 			throw developer_error(
 					std::string("Error: citrix_rdp_type '") + s_citrix_rdp_type +
@@ -155,10 +139,10 @@ void MainWindow::printProfile()
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
-	ui->txb_citrix_rdp_citrix_store	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_citrix_store"));
-	ui->txb_citrix_rdp_citrix_url	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_citrix_url"));
-	ui->txb_citrix_rdp_rdp_server	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_rdp_server"));
-	ui->txb_citrix_rdp_rdp_domain	->setText(profile.getProfile().value("citrix&rdp").value("citrix_rdp_rdp_domain"));
+	ui->txb_citrix_rdp_citrix_store	->setText(profile.get_Map_Value("citrix&rdp", "citrix_rdp_citrix_store"));
+	ui->txb_citrix_rdp_citrix_url	->setText(profile.get_Map_Value("citrix&rdp", "citrix_rdp_citrix_url"));
+	ui->txb_citrix_rdp_rdp_server	->setText(profile.get_Map_Value("citrix&rdp", "citrix_rdp_rdp_server"));
+	ui->txb_citrix_rdp_rdp_domain	->setText(profile.get_Map_Value("citrix&rdp", "citrix_rdp_rdp_domain"));
 }
 
 
@@ -181,13 +165,13 @@ void MainWindow::delProfile()  {
 	}
 
 	// last remaining profile
-	if( !(profile.getmListOfProfilesName().size() > 1) ) {
+	if( !(profile.get_List_of_IniFiles().size() > 1) ) {
 		print_customer_info("can't delete last remaining file");
 		return;
 	}
 
-	QString profileFullName = profile.getProfileFolderName () + "/"
-		+ drdw_current + "_profile.ini";
+	QString profileFullName = profile.get_IniFile_Folder () + "/"
+		+ drdw_current + profile.get_IniFile_ending();
 
 	QMessageBox::StandardButton reply = questionMessage (this,"Do you really want to remove"
 			"the selected profile from profiles-folder");
@@ -210,29 +194,24 @@ void MainWindow::delProfile()  {
 	}
 
 
-	// delete profile out of the profiles-list
-	profile.getmListOfProfilesName().removeOne(drdw_current);
+	// delete profile out of the profiles-list, therefore use the constructor, 
+	// that reads out all files in the iniFolder
+	reload_profile();
 
 	// update the dropdown list
-	setDrDwProfilesList(profile.getmListOfProfilesName ());
+	setDrDwProfilesList(profile.get_List_of_IniFiles());
 
 	//check for last_profile in setting.ini
-	QString last_profile = setting.getSetting().value("profile").value("last_profile");
+	QString last_profile = setting.get_Map_Value("profile", "last_profile");
 	
 	//////////////
 	//if the deleted profile was the last_profile*/
 	//
 	//compare returns 0 if equal
 	if ( !last_profile.compare(drdw_current)) {
-		//save the now new profile as default
+		//save the now new profile as default into Map and disk
 		save_last_profile_and_client_logo();
-		// reloads global settings of setting.ini
-		// because the last_profile changed
-		try {
-			setting.loadSettings();
-		} catch(const developer_error& e) {
-			handle_developer_error(e);
-		}
+
 		//load the nm-settings of the new last_profile-map and handles incorrectness
 		renew_nm();
 		//reload the settings of the new profile
@@ -286,27 +265,23 @@ void MainWindow::save_new_profile_clicked() {
 	}
 
 	// check whether profilename already used
-	if(this->profile.getmListOfProfilesName ().contains (ui->drdw_profiles->currentText ())) {
+	if(this->profile.get_List_of_IniFiles().contains (ui->drdw_profiles->currentText ())) {
 		print_customer_info("Can't save profile. \n Profile name already exists.");
 		return;
 	}
 
-	//if updateProfileMap() didn't work, the save_profile_to_harddisk() won't be executed in the if.
-	//don't change this statement
-	if ( updateProfileMap() && save_profile_to_harddisk() ) {
+	//function executed
+	check_input_and_save_new_profile();
 
-	} else {
-		return;
-	}
-
-	setDrDwProfilesList(profile.getmListOfProfilesName ());
+	//reload the list of all available profiles
+	setDrDwProfilesList(profile.get_List_of_IniFiles());
 	ui->drdw_profiles->setEditable (false);
 	// make the new profile the currently displayed profile
-	ui->drdw_profiles->setCurrentText (
-			profile.getProfile ().value ("global").value ("profile_name").toUtf8().constData());
+	ui->drdw_profiles->setCurrentText(profile.get_Map_Value("global", "profile_name").toUtf8().constData());
 	ui->drdw_profiles->setFocus ();
 	ui->btn_new_profile->setText ("new");
 	ui->btn_save_quit->setEnabled (true);
+	//activate the change-Buttons
 	activate_btn_network_wlan(true);
 	activate_btn_citrix_rdp(true);
 
@@ -322,85 +297,51 @@ void MainWindow::save_new_profile_clicked() {
 *  TODO keep it up to date with new models
 *  takes all inputs of inpufields and check them for correctness. 
 *  write them to the Map if they are correct. 
-*  Otherwise, give back an information 
-*  @return true if the map has be updated successfully, else false
+*
+*  then write the name of the new profile-name into the profile-map
+*  and save this profile to hard-disk
+*  then reload the profile with the new name and the new List_of_IniFiles
+*  if this fails, then reload the last_profile of setting
 */
-bool MainWindow::updateProfileMap() {
+void MainWindow::check_input_and_save_new_profile() {
 
-	bool isOK = true;
 	//add network info to map
 	if ( !check_network_input() ) {
 		//check_network_input throws his own exception
-		//criticalMessage (this,"please check network input for correctness");
-		return false;
+		return ;
 	}
 
 	//add wlan info to map
 	if ( !check_wlan_input() ) {
 		//check_wlan_input throws his own exception
-		//criticalMessage (this,"please check network input for correctness");
-		return false;
+		return ;
 	}
 	
 	//add citrix&rdp info to map
 	if ( !check_citrix_rdp_input() ) {
 		//check_wlan_input throws his own exception
-		//criticalMessage (this,"please check network input for correctness");
-		return false;
+		return ;
 	}
-	auto& profile_map = profile.getProfile();
 	try {
-		// add global info
-		auto global = profile_map.find("global");
-		if( global != profile_map.end() ) {
-			auto& second_map = global.value();
-			assert( second_map.find("profile_name") != second_map.end() );
-			*( second_map.find("profile_name") ) = ui->drdw_profiles->currentText ();
-		} else {
-			throw customer_error(std::string("Please select a valid Profile"));
-		}
+		//get information about the profiles new name, folder, ending 
+		QString profilesNewName = ui->drdw_profiles->currentText();
+		QString profilesFolder 	= setting.get_Map_Value("path", "path_profiles");
+		QString profilesEnding 	= setting.get_Map_Value("profile", "profile_ending");
+		QString profileFullName = profilesFolder + "/" + profilesNewName + profilesEnding;
 
+		//set the name of the Profile in the Map under [global] profile_name to the new name
+		profile.set_Map_Value("global", "profile_name", profilesNewName);
 
-		profile.getmListOfProfilesName ().push_back (
-				profile.getProfile ().value ("global").value ("profile_name"));
-		// sort the profiles alphabetically
-		std::sort(profile.getmListOfProfilesName ().begin(), profile.getmListOfProfilesName ().end());
-
+		//save this new map to harddisk 
+		ini_saver(profileFullName, profile.get_Map());
+		// load new profile and new profiles list 
+		profile = IniFile(profilesFolder, profilesNewName, profilesEnding);
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
-		isOK = false;
-
-	} catch(const customer_error& e) {
-		handle_customer_error(e);
-		isOK = false;
+		//if something went wrong, load the last_profile in setting.ini
+		reload_profile();
 	}
-	return isOK;
 }
-
-
-
-
-/**
- *  save profile to harddisk
- *  gives an info if something went wrong
- *  @return true if everything worked fine, else false
- */
-bool MainWindow::save_profile_to_harddisk() {
-	//save profile onto harddisk
-	try {
-		QString errMsg = profile.saveProfile();
-		if(!errMsg.isNull ()) {
-			//this is a customer info
-			print_customer_info(errMsg);
-			return false;
-		}
-	} catch(const developer_error& e) {
-		handle_developer_error(e);
-	}
-	return true;
-}
-
-
 
 
 
@@ -429,14 +370,14 @@ void MainWindow::setDefaultSettingButtonsProfile() {
  *  set the names of all Profiles given in the DropDown Profiles and set the default one
  *  @param ListOfProfiles list with all profile names that will be displayed in the DropDown Menu
  */
-void MainWindow::setDrDwProfilesList(QList<QString>& listOfProfiles)
+void MainWindow::setDrDwProfilesList(QList<QString> listOfProfiles)
 {
 	// add ordered profiles list to dropdown and examine the default profile
 	int defaultIndex = 0;
 	ui->drdw_profiles->clear ();
 	for ( auto str : listOfProfiles) {
 		ui->drdw_profiles->addItem(str);
-		if ( !str.compare(setting.getSetting().value("profile").value("last_profile").toUtf8().constData()))
+		if ( !str.compare(setting.get_Map_Value("profile", "last_profile").toUtf8().constData()))
 			ui->drdw_profiles->setCurrentIndex(defaultIndex);
 		++defaultIndex;
 	}
@@ -447,13 +388,12 @@ void MainWindow::setDrDwProfilesList(QList<QString>& listOfProfiles)
 /**
  *  take option of setting.ini: profile_opt
  *  which setting/option for the profiles will be possible
- *  @param s_profilesFolder directory of the folder in which the profiles lies in
  */
-void MainWindow::setDrDwProfilesOpt(std::string s_profilesFolder) 
+void MainWindow::setDrDwProfilesOpt() 
 {
 	//read in all profiles in a dropdown menu
 	try{
-		QString profilesOpt = setting.getSetting().value("profile").value("profile_opt");
+		QString profilesOpt = setting.get_Map_Value("profile", "profile_opt");
 		//unable the buttons for CurrentNew as default
 		setDefaultSettingButtonsProfile();
 		//only use the default profile
@@ -462,11 +402,11 @@ void MainWindow::setDrDwProfilesOpt(std::string s_profilesFolder)
 
 			//only use the available profiles, no new ones
 		} else if (profilesOpt == "current") {
-			setDrDwProfilesCurrent(s_profilesFolder);
+			setDrDwProfilesCurrent();
 
 			//use the available, delete and create new profiles
 		} else if (profilesOpt == "current_new") {
-			setDrDwProfilesCurrentNew(s_profilesFolder);
+			setDrDwProfilesCurrentNew();
 
 			//throw exception if not [one, current, current_new]
 		} else {
@@ -486,7 +426,7 @@ void MainWindow::setDrDwProfilesOpt(std::string s_profilesFolder)
  *  read in only the default profile, not possible to switch
  */
 void MainWindow::setDrDwProfilesOne() {
-	ui->drdw_profiles->addItem(setting.getSetting().value("profile").value("last_profile"));
+	ui->drdw_profiles->addItem(setting.get_Map_Value("profile", "last_profile"));
 	ui->drdw_profiles->setEnabled(false);
 	//see for initialisation:setDefaultSettingButtonsProfile
 }
@@ -495,11 +435,10 @@ void MainWindow::setDrDwProfilesOne() {
 /**
  *  read in all profiles and add them ordered with default one to the dropdown bar
  *  no remove
- *  @param s_profilesFolder directory of the folder in which the profiles lie in
  */
-void MainWindow::setDrDwProfilesCurrent(std::string s_profilesFolder) {
-	readInProfiles(s_profilesFolder);
-	setDrDwProfilesList(profile.getmListOfProfilesName ());
+void MainWindow::setDrDwProfilesCurrent() {
+	//readInProfiles(s_profilesFolder);
+	setDrDwProfilesList(profile.get_List_of_IniFiles());
 	ui->drdw_profiles->setEnabled(true);
 	//see for initialisation:setDefaultSettingButtonsProfile
 }
@@ -507,13 +446,12 @@ void MainWindow::setDrDwProfilesCurrent(std::string s_profilesFolder) {
 
 /**
  *  delete, create, and view all profiles, but no renaming possible
- *  @param s_profilesFolder directory of the folder in which the profiles lie in
  */
-void MainWindow::setDrDwProfilesCurrentNew(std::string s_profilesFolder) {
+void MainWindow::setDrDwProfilesCurrentNew() {
 	// restrict every new input to be ordered alphabetically
 	ui->drdw_profiles->setInsertPolicy(QComboBox::InsertAlphabetically);
-	readInProfiles(s_profilesFolder);
-	setDrDwProfilesList(profile.getmListOfProfilesName ());
+	//readInProfiles(s_profilesFolder);
+	setDrDwProfilesList(profile.get_List_of_IniFiles());
 	// set the delete button visible and useable
 	ui->btn_profile_delete->setEnabled(true);
 	ui->btn_profile_delete->setVisible(true);

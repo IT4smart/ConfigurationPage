@@ -59,7 +59,7 @@ void MainWindow::set_logos()
 	on_drdw_pictures_activated(ui->drdw_pictures->currentText());
 	
 	//set the default provider picture
-	QPixmap imgRight(setting.getSetting().value("path").value("path_provider_logo") + "/picture.png");
+	QPixmap imgRight(setting.get_Map_Value("path", "path_provider_logo") + "/picture.png");
 	int height 	= ui->lb_picture_right->height();
 	int width 	= ui->lb_picture_right->width();
 	ui->lb_picture_right->setMinimumSize(1, 1);
@@ -74,7 +74,7 @@ void MainWindow::set_logos()
  */
 QStringList MainWindow::readInPictures()
 {
-	QDirIterator it (this->setting.getSetting().value("path").value("path_client_logo"),
+	QDirIterator it (this->setting.get_Map_Value("path", "path_client_logo"),
 			QDirIterator::Subdirectories);
 	QList<QString> list;
 	while (it.hasNext()) {
@@ -103,7 +103,7 @@ void MainWindow::setDrDwPicturesList(QStringList list)
 	for (auto element: list) {
 			ui->drdw_pictures->addItem(element);
 			//set the default index
-			if ( !element.compare(setting.getSetting().value("profile").value("last_client_logo").toUtf8().constData()))
+			if ( !element.compare(setting.get_Map_Value("profile", "last_client_logo").toUtf8().constData()))
 				ui->drdw_pictures->setCurrentIndex(defaultIndex);
 			++defaultIndex;
 	}
@@ -117,7 +117,7 @@ void MainWindow::drdw_pictures_select(const QString &logo)
 {
 	if (logo.isEmpty() || logo.isNull())
 		return;
-	QPixmap imgLeft(this->setting.getSetting().value("path").value("path_client_logo") + logo);
+	QPixmap imgLeft(this->setting.get_Map_Value("path", "path_client_logo") + logo);
 
 	int height 	= ui->lb_picture_left->height();
 	int width 	= ui->lb_picture_left->width();
@@ -146,9 +146,9 @@ void MainWindow::pictures_delete()
 
 
 	QString curPic = ui->drdw_pictures->currentText();
-	QString defPic = setting.getSetting().value("profile").value("last_client_logo").toUtf8().constData();
+	QString defPic = setting.get_Map_Value("profile", "last_client_logo").toUtf8().constData();
 	//ask to delete picture
-	QString fullname = this->setting.getSetting().value ("path").value("path_client_logo") + curPic;
+	QString fullname = this->setting.get_Map_Value("path", "path_client_logo") + curPic;
 
 	QMessageBox::StandardButton reply = questionMessage (this,"Do you really want to remove"
 			" the selected logo from folder");
@@ -177,15 +177,8 @@ void MainWindow::pictures_delete()
 			//set default to first one
 			ui->drdw_pictures->setCurrentIndex(0);
 			defPic = ui->drdw_pictures->currentText();
-			//save the now new logo as default
+			//save the now new logo as default into Map and onto disk
 			save_last_profile_and_client_logo();
-			// reloads global settings of setting.ini
-			// because the last_client_logo changed
-			try {
-				setting.loadSettings();
-			} catch(const developer_error& e) {
-				handle_developer_error(e);
-			}
 		}
 		//load the pic on the gui
 		on_drdw_pictures_activated(defPic);
