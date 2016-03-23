@@ -47,7 +47,7 @@
  */
 void MainWindow::activate_btn_citrix_rdp(bool input)
 {
-	ui->btn_change_citrix_rdp	->setEnabled(input);
+    ui->btn_change_citrix_rdp   ->setEnabled(input);
 }
 
 
