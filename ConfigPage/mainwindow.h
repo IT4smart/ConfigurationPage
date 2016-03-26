@@ -35,12 +35,12 @@
 
 #include <QMainWindow>
 #include "../../libs/tools/inc/IniFile.h"
-#include "./inc/profile.h"
 
 namespace Ui {
 	class MainWindow;
 }
 
+//TODO export in another tool file
 bool check_for_empty_or_whitespace(QString input);
 
 class MainWindow : public QMainWindow
@@ -66,6 +66,7 @@ class MainWindow : public QMainWindow
 		void handle_developer_error(const std::exception& e);
 		void handle_developer_error(const std::exception& e, bool customer_msg);
 		void handle_customer_error(const std::exception& e);
+		void handle_customer_info(const std::exception& e);
 		void print_customer_info(QString message);
 
 

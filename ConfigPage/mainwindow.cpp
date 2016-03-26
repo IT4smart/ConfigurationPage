@@ -51,17 +51,16 @@
  *  read in the names of all possible profile in the profiles folder
  *  and sort these entries alphabetically
  *  @param s_profilesFolder directory of the folder in which the profiles lie in
+ *  @throw developer_error why this exceptions is thrown
  *  @return Vector of Strings with all profile names in the profile Folder
  */
 
-/*TODO
- *	setting.ini so machen, dass diese die aktuell gespeicherten sachen wie profile abspeichert und diese nicht übergeben werden. 
- *	dann kann man die gleiche klasse verwenden für profile, setting und language
- *
- */
 /**
- * mainwindow_profile.cpp TODO abarbeiten
  * TODO log file folder automatisch erstellen
+ *
+ * TODO mit skripten alles ausführen
+ *
+ * TODO errorMsg datei löschen, evtl in mainwindow_handle_custom_exception.cpp
  */
 
 
@@ -101,7 +100,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	// load last profile
 	reload_profile();
-
 
 	// set profile option in setting.ini
 	setDrDwProfilesOpt();

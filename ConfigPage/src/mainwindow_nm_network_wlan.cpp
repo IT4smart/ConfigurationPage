@@ -45,7 +45,6 @@
 #include "../../../libs/nm+tools/inc/nm_make_file.h"
 //#include "../inc/nm_check_functions.h"
 #include "../../../libs/nm+tools/inc/nm_get_functions.h" 	//for wlan-module: yes or no
-#include "../../../libs/tools/inc/remove_file.h" 		//for removing wlan-file in nm
 
 
 
@@ -81,7 +80,9 @@ void MainWindow::check_wlan() {
 
 /**
  *  check if the input is correct for static
- *  if yes, then save into the map, otherwise show ErrorMessage
+ *  if yes, then save into the map, otherwise throw exception
+ *  @throw developer_error (maybe not)
+ *  @throw customer_error if a value is not in the right form
  *  @return status of success
  */
 bool MainWindow::check_network_input() {
@@ -98,39 +99,17 @@ bool MainWindow::check_network_input() {
 		if (ui->rdb_network_type_static->isChecked()) {
 			nm_make_ipv4_static(ip, netmask, gateway, dns);
 		}
+		profile.set_Map_Value("network", "network_ip", ip);
+		profile.set_Map_Value("network", "network_netmask", netmask);
+		profile.set_Map_Value("network", "network_gateway", gateway);
+		profile.set_Map_Value("network", "network_dns", dns);
 
-		auto& profile_map = profile.getProfile();
-		// First level is an iterator.
-		auto first_level = profile_map.find("network");
-		if( first_level != profile_map.end() ) {
-			// Second map is a map.
-			auto& second_map = first_level.value();
-			//        Q_ASSERT( second_map.find("network_i") != second_map.end() ); //doesn't throw an error
-			assert( second_map.find("network_ip") 		!= second_map.end() );
-			*( second_map.find("network_ip") ) 		= ip;
-
-			assert( second_map.find("network_netmask") 	!= second_map.end() );
-			*( second_map.find("network_netmask") ) 	= netmask;
-
-			assert( second_map.find("network_gateway") 	!= second_map.end() );
-			*( second_map.find("network_gateway") ) 	= gateway;
-
-			assert( second_map.find("network_dns") 		!= second_map.end() );
-			*( second_map.find("network_dns") ) 		= dns;
-
-			assert( second_map.find("network_type") != second_map.end() );
-			if (ui->rdb_network_type_dhcp->isChecked()) {
-				*( second_map.find("network_type") ) 	= "dhcp";
-				//std::cout << "dhcp\n";
-			} else if  (ui->rdb_network_type_static->isChecked()) {
-				*( second_map.find("network_type") ) 	= "static";
-				//std::cout << "static\n";
-			} else {
-				throw customer_error(std::string("dhcp or static must be selected"));
-			}
-		} else {
-			throw customer_error(std::string("Please select a valid Profile"));
-		}
+		if (ui->rdb_network_type_dhcp->isChecked()) 
+			profile.set_Map_Value("network", "network_type", "dhcp");
+		else if  (ui->rdb_network_type_static->isChecked()) 
+			profile.set_Map_Value("network", "network_type", "static");
+		else 
+			throw customer_error(std::string("dhcp or static must be selected"));
 
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
@@ -139,7 +118,6 @@ bool MainWindow::check_network_input() {
 		handle_customer_error(e);
 		isOK = false;
 	}
-
 	return isOK;
 }
 
@@ -188,41 +166,21 @@ bool MainWindow::renew_nm() {
 
 	bool isOK = true;
 	try {
-		QString path 	= setting.get_Map_Value("path", "path_networkmanager");
-		QString system 	= setting.get_Map_Value("system", "system");
+		QString path 		= setting.get_Map_Value("path", "path_networkmanager");
+		QString system 		= setting.get_Map_Value("system", "system");
 
-		auto& profile_map = profile.getProfile();
-		QString ip 		= profile_map.value("network")	.value("network_ip");
-		QString netmask		= profile_map.value("network")	.value("network_netmask");
-		QString gateway		= profile_map.value("network")	.value("network_gateway");
-		QString dns 		= profile_map.value("network")	.value("network_dns");
-		QString network_type  	= profile_map.value("network")	.value("network_type");
+		QString ip 		= profile.get_Map_Value("network", "network_ip");
+		QString netmask		= profile.get_Map_Value("network", "network_netmask");
+		QString gateway		= profile.get_Map_Value("network", "network_gateway");
+		QString dns 		= profile.get_Map_Value("network", "network_dns");
+		QString network_type  	= profile.get_Map_Value("network", "network_type");
 
-		QString wlan_active	= profile_map.value("wlan")	.value("wlan_active");
-		QString ssid 		= profile_map.value("wlan")	.value("wlan_ssid");
-		QString passwd 		= profile_map.value("wlan")	.value("wlan_passwd");
+		QString wlan_active	= profile.get_Map_Value("wlan", "wlan_active");
+		QString ssid 		= profile.get_Map_Value("wlan", "wlan_ssid");
+		QString passwd 		= profile.get_Map_Value("wlan", "wlan_passwd");
 
-		//Create the networkmanager-files:
-		//delete wlan, if wlan is inactive in Map or disabled, because there is no wlan-module
-		if (wlan_active == "false" || !(ui->chk_wlan_active->isEnabled()) ) {
-			remove_wlan_if_existing(path.toStdString());
-		} else {
-			//wlan with static ip
-			if (network_type == "static") {
-				nm_make_file_wlan_static	(system, path, ssid, passwd, ip, netmask, gateway, dns);
-				print_customer_info("You added a new WLan-Configuration:\nIt may need up to 30 sec to get WLan access");
-			} else {
-				nm_make_file_wlan_dhcp		(system, path, ssid, passwd);
-				print_customer_info("You added a new WLan-Configuration:\nIt may need up to 30 sec to get WLan access");
-			}
-		}
-
-		if (network_type == "static") {
-			nm_make_file_ethernet_static	(system, path, ip, netmask, gateway, dns);
-		} else {
-			nm_make_file_ethernet_dhcp	(system, path);
-		}
-
+		//controls what happens with the given information of the profile
+		renew_nm_exec_commands(system, path, wlan_active, ssid, passwd, network_type, ip, netmask, gateway, dns);
 
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
@@ -230,9 +188,13 @@ bool MainWindow::renew_nm() {
 	} catch(const customer_error& e) {
 		handle_customer_error(e);
 		isOK = false;
+	} catch(const customer_info& e) {
+		handle_customer_info(e); //TODO funktion gibt es noch nicht
+		isOK = true;
 	}
 	return isOK;
 }
+
 
 
 /**
@@ -249,6 +211,7 @@ void MainWindow::activate_network_wlan(bool input) {
 
 
 /**
+ * TODO call activate_network_input_fields
  *  de/activation of the network input-fields
  *  @param input true=activate, false=deactivate
  */

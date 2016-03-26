@@ -89,7 +89,14 @@ void MainWindow::handle_customer_error(const std::exception& e)
 	print_customer_info(e.what());
 	//std::cout << "customer-error\n";
 }
-
+/**
+ *  give information to user/customer
+ *  @param e the customer_info
+ */
+void MainWindow::handle_customer_info(const std::exception& e)
+{
+	print_customer_info(e.what());
+}
 
 /**
  *  needed for non-exception information

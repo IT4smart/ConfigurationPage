@@ -34,14 +34,15 @@
 #define VERSION_MINOR 0
 
 #include <memory>
-#include "../../../libs/tools/inc/setting.h"
-#include "profile.h"
+#include "../../../libs/tools/inc/IniFile.h"
+#include "../mainwindow.h"
+
 //the parameter won't be changed in the function, therefore a "const"
 void parameter_return(const char* _executable, const char* _input);
 void print_help(const char* _executable);
 void return_profile_info(const char *_executable, std::string input);
 std::string get_dhcp_info(std::string input);
-bool renew_nm_terminal(std::unique_ptr<Setting> setting, std::unique_ptr<Profile> profile);
+bool renew_nm_terminal(std::unique_ptr<IniFile> setting, std::unique_ptr<IniFile> profile);
 bool handle_error_terminal(const std::exception& e, QString logFolder);
 
 #endif // PARAMETER_RETURN_H

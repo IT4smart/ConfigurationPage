@@ -41,13 +41,12 @@
 #include <regex>
 
 #include "../inc/parameter_return.h"
-#include "../../../libs/tools/inc/setting.h"
-#include "../inc/profile.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 #include "../../../libs/tools/inc/exec_cmd.h"
 #include "../../../libs/nm+tools/inc/nm_make_functions.h"
 #include "../../../libs/nm+tools/inc/nm_make_file.h"
 #include "../../../libs/tools/inc/remove_file.h"
+#include "../../../libs/tools/inc/paths.h" //for path to setting.ini
 
 
 
@@ -92,197 +91,189 @@ void parameter_return(const char *_executable, const char *_input)
  */
 void return_profile_info(const char *_executable, std::string input)
 {
-	std::unique_ptr<Setting> setting(new Setting);
-	std::unique_ptr<Profile> profile(new Profile);
 	// loads global settings of setting.ini
 	try {
-		setting.get()->loadSettings();
-	} catch(const developer_error& e) {
-		std::cout << -1 << std::endl;
-		return;
-	}
-
-	// load last profile
-	QString profilesFolder 	= setting.get()->getSetting().value("path").value("path_profiles");
-	profile.get()->setProfileFolderName(profilesFolder);
-	try {
-		profile.get()->loadProfile(setting.get()->getSetting().value("profile").value("last_profile") );
-	} catch(const developer_error& e) {
-		std::cout << -1 << std::endl;
-		return;
-	}	
+		std::unique_ptr<IniFile> setting(new IniFile(SETTING_PATH, SETTING_FILE, SETTING_ENDING));
+		// load last profile
+		QString profilesFolder 	= setting.get()->get_Map_Value("path", "path_profiles");
+		QString profilesLast 	= setting.get()->get_Map_Value("profile", "last_profile");
+		QString profilesEnding 	= setting.get()->get_Map_Value("profile", "profile_ending");
+		std::unique_ptr<IniFile> profile(new IniFile(profilesFolder, profilesLast, profilesEnding));
 
 
+		//read out the profile and setting
+		QString system 		= setting.get()->get_Map_Value("system", "system");
+		QString language	= setting.get()->get_Map_Value("system", "language");
+		QString keyboard	= setting.get()->get_Map_Value("system", "keyboard");
+		QString client_logo_path= setting.get()->get_Map_Value("path", "path_client_logo");
+		QString client_logo 	= setting.get()->get_Map_Value("profile", "last_client_logo");
+		client_logo 		= client_logo_path + "/" + client_logo;
 
-	//read out the profile and setting
-	QString system 		= setting.get()->getSetting().value("system").value("system");
-	QString language	= setting.get()->getSetting().value("system").value("language");
-	QString keyboard	= setting.get()->getSetting().value("system").value("keyboard");
-	QString client_logo_path= setting.get()->getSetting().value("path").value("path_client_logo");
-	QString client_logo 	= setting.get()->getSetting().value("profile").value("last_client_logo");
-	client_logo 		= client_logo_path + "/" + client_logo;
+		QString profile_name	= profile.get()->get_Map_Value("global", "profile_name");
 
-	auto& profile_map = profile.get()->getProfile();
-	QString profile_name	= profile_map.value("global")	.value("profile_name");
-
-	//network
-	QString ip 		= profile_map.value("network")	.value("network_ip");
-	QString netmask_profile	= profile_map.value("network")	.value("network_netmask");
-	QString netmask 	= "-1";
-	QString netmask_short	= "-1";
-	//netmask conversion
-	try {
-		netmask_short 	= nm_make_netmask_x(netmask_profile);
-		netmask 	= nm_make_netmask_wxyz(netmask_profile);
-	} catch (const customer_error& e){
-		netmask = "-1";
-		netmask_short = "-1";
-	}
-
-	QString gateway		= profile_map.value("network")	.value("network_gateway");
-	QString dns 		= profile_map.value("network")	.value("network_dns");
-	QString network_type  	= profile_map.value("network")	.value("network_type");
-
-	//wlan
-	QString wlan_active	= profile_map.value("wlan")	.value("wlan_active");
-	QString ssid 		= profile_map.value("wlan")	.value("wlan_ssid");
-	QString passwd 		= profile_map.value("wlan")	.value("wlan_passwd");
-
-	//citrix&rdp
-	QString citrix_rdp_type	= profile_map.value("citrix&rdp")	.value("citrix_rdp_type");
-	QString citrix_store	= profile_map.value("citrix&rdp")	.value("citrix_rdp_citrix_store");
-	QString citrix_url	= profile_map.value("citrix&rdp")	.value("citrix_rdp_citrix_url");
-	QString rdp_server 	= profile_map.value("citrix&rdp")	.value("citrix_rdp_rdp_server");
-	QString rdp_domain 	= profile_map.value("citrix&rdp")	.value("citrix_rdp_rdp_domain");
-
-	//go through every possible input
-	if (input == "profile_info") {
-		std::cout << 
-			"system:\t\t\t" 	<< system << "\n" <<
-			"language:\t\t\t" 	<< language << "\n" <<
-			"keyboard:\t\t\t" 	<< keyboard << "\n" <<
-			"profile_name:\t\t" 	<< profile_name << "\n" 
-			<< "\n" <<
-			//network
-			"network_type:\t\t" 	<< network_type << "\n" <<
-			"ip:\t\t\t"	 	<< ip << "\n" <<
-			"netmask_profile:\t" 	<< netmask_profile << "\n" <<
-			"netmask:\t\t" 		<< netmask << "\n" <<
-			"netmask_short:\t\t" 	<< netmask_short << "\n" <<
-			"gateway:\t\t" 		<< gateway << "\n" <<
-			"dns:\t\t\t" 		<< dns << "\n" 
-			<< "\n" <<
-			//wlan
-			"wlan_active:\t\t" 	<< wlan_active << "\n" <<
-			"ssid:\t\t\t" 		<< ssid << "\n" <<
-			"passwd:\t\t\t" 	<< passwd << "\n" 
-			<< "\n" <<
-			//citrix&rdp
-			"citrix_rdp_type:\t" 	<< citrix_rdp_type << "\n" <<
-			"citrix_store:\t\t" 	<< citrix_store << "\n" <<
-			"citrix_url:\t\t" 	<< citrix_url << "\n" <<
-			"rdp_server:\t\t" 	<< rdp_server << "\n" <<
-			"rdp_domain:\t\t" 	<< rdp_domain << "\n" 
-			<< "\n"; 
-
-
-		//system & profile_name
-	} else if (input == "system") {
-		std::cout << system << std::endl;
-	} else if (input == "language") {
-		std::cout << language << std::endl;
-	} else if (input == "keyboard") {
-		std::cout << keyboard << std::endl;
-	} else if (input == "client_logo") {
-		std::cout << client_logo << std::endl;	
-	} else if (input == "profile_name") {
-		std::cout << profile_name << std::endl;
 		//network
-	} else if (input == "network_type") {
-		std::cout << network_type << std::endl;
-	} else if (input == "netmask_profile") {
-		std::cout << netmask_profile << std::endl;
+		QString ip 		= profile.get()->get_Map_Value("network", "network_ip");
+		QString netmask_profile	= profile.get()->get_Map_Value("network", "network_netmask");
+		QString netmask 	= "-1";
+		QString netmask_short	= "-1";
+		//netmask conversion
+		try {
+			netmask_short 	= nm_make_netmask_x(netmask_profile);
+			netmask 	= nm_make_netmask_wxyz(netmask_profile);
+		} catch (const customer_error& e){
+			netmask = "-1";
+			netmask_short = "-1";
+		}
 
-		//static
-	} else if (input == "ip" && network_type == "static") {
-		std::cout << ip << std::endl;
-	} else if (input == "ip_wlan" && network_type == "static") {
-		std::cout << ip << std::endl;
-	} else if (input == "netmask_short" && network_type == "static") {
-		std::cout << netmask_short << std::endl;
-	} else if (input == "netmask" && network_type == "static") {
-		std::cout << netmask << std::endl;
-	} else if (input == "gateway" && network_type == "static") {
-		std::cout << gateway << std::endl;
-	} else if (input == "dns" && network_type == "static") {
-		std::cout << dns << std::endl;	
-
-		//dhcp
-	} else if (input == "ip" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("ip") << std::endl;	
-	} else if (input == "ip_wlan" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("ip_wlan") << std::endl;	
-	} else if (input == "netmask_short" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("netmask_short") << std::endl;	
-	} else if (input == "netmask" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("netmask") << std::endl;	
-	} else if (input == "gateway" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("gateway") << std::endl;	
-	} else if (input == "dns" && network_type == "dhcp") {
-		std::cout << get_dhcp_info("dns") << std::endl;	
-
-		//system-calls
-	} else if (input == "ip_system") {
-		std::cout << get_dhcp_info("ip") << std::endl;	
-	} else if (input == "ip_wlan_system") {
-		std::cout << get_dhcp_info("ip_wlan") << std::endl;	
-	} else if (input == "netmask_short_system") {
-		std::cout << get_dhcp_info("netmask_short") << std::endl;	
-	} else if (input == "netmask_system") {
-		std::cout << get_dhcp_info("netmask") << std::endl;	
-	} else if (input == "gateway_system") {
-		std::cout << get_dhcp_info("gateway") << std::endl;	
-	} else if (input == "dns_system") {
-		std::cout << get_dhcp_info("dns") << std::endl;	
-
-		//out of profile
-	} else if (input == "ip_profile") {
-		std::cout << ip << std::endl;
-		//netmask_profile is the same as some time before: see above:
-	} else if (input == "gateway_profile") {
-		std::cout << gateway << std::endl;
-	} else if (input == "dns_profile") {
-		std::cout << dns << std::endl;	
-
+		QString gateway		= profile.get()->get_Map_Value("network", "network_gateway");
+		QString dns 		= profile.get()->get_Map_Value("network", "network_dns");
+		QString network_type  	= profile.get()->get_Map_Value("network", "network_type");
 
 		//wlan
-	} else if (input == "wlan_active") {
-		std::cout << wlan_active << std::endl;
-	} else if (input == "ssid") {
-		std::cout << ssid << std::endl;
-	} else if (input == "passwd") {
-		std::cout << passwd << std::endl;
+		QString wlan_active	= profile.get()->get_Map_Value("wlan", "wlan_active");
+		QString ssid 		= profile.get()->get_Map_Value("wlan", "wlan_ssid");
+		QString passwd 		= profile.get()->get_Map_Value("wlan", "wlan_passwd");
 
 		//citrix&rdp
-	} else if (input == "citrix_rdp_type") {
-		std::cout << citrix_rdp_type << std::endl;
-	} else if (input == "citrix_store") {
-		std::cout << citrix_store << std::endl;
-	} else if (input == "citrix_url") {
-		std::cout << citrix_url << std::endl;
-	} else if (input == "rdp_server") {
-		std::cout << rdp_server << std::endl;
-	} else if (input == "rdp_domain") {
-		std::cout << rdp_domain << std::endl;
-		//
-		//NETWORK-MANAGER nm
-	} else if (input == "renew_nm") {
-		if (renew_nm_terminal(std::move(setting), std::move(profile)))
-			std::cout << "0" << std::endl;
+		QString citrix_rdp_type	= profile.get()->get_Map_Value("citrix&rdp", "citrix_rdp_type");
+		QString citrix_store	= profile.get()->get_Map_Value("citrix&rdp", "citrix_rdp_citrix_store");
+		QString citrix_url	= profile.get()->get_Map_Value("citrix&rdp", "citrix_rdp_citrix_url");
+		QString rdp_server 	= profile.get()->get_Map_Value("citrix&rdp", "citrix_rdp_rdp_server");
+		QString rdp_domain 	= profile.get()->get_Map_Value("citrix&rdp", "citrix_rdp_rdp_domain");
 
-		//help if nothing found
-	} else {
-		print_help(_executable);
+		//go through every possible input
+		if (input == "profile_info") {
+			std::cout << 
+				"system:\t\t\t" 	<< system << "\n" <<
+				"language:\t\t\t" 	<< language << "\n" <<
+				"keyboard:\t\t\t" 	<< keyboard << "\n" <<
+				"profile_name:\t\t" 	<< profile_name << "\n" 
+				<< "\n" <<
+				//network
+				"network_type:\t\t" 	<< network_type << "\n" <<
+				"ip:\t\t\t"	 	<< ip << "\n" <<
+				"netmask_profile:\t" 	<< netmask_profile << "\n" <<
+				"netmask:\t\t" 		<< netmask << "\n" <<
+				"netmask_short:\t\t" 	<< netmask_short << "\n" <<
+				"gateway:\t\t" 		<< gateway << "\n" <<
+				"dns:\t\t\t" 		<< dns << "\n" 
+				<< "\n" <<
+				//wlan
+				"wlan_active:\t\t" 	<< wlan_active << "\n" <<
+				"ssid:\t\t\t" 		<< ssid << "\n" <<
+				"passwd:\t\t\t" 	<< passwd << "\n" 
+				<< "\n" <<
+				//citrix&rdp
+				"citrix_rdp_type:\t" 	<< citrix_rdp_type << "\n" <<
+				"citrix_store:\t\t" 	<< citrix_store << "\n" <<
+				"citrix_url:\t\t" 	<< citrix_url << "\n" <<
+				"rdp_server:\t\t" 	<< rdp_server << "\n" <<
+				"rdp_domain:\t\t" 	<< rdp_domain << "\n" 
+				<< "\n"; 
+
+
+			//system & profile_name
+		} else if (input == "system") {
+			std::cout << system << std::endl;
+		} else if (input == "language") {
+			std::cout << language << std::endl;
+		} else if (input == "keyboard") {
+			std::cout << keyboard << std::endl;
+		} else if (input == "client_logo") {
+			std::cout << client_logo << std::endl;	
+		} else if (input == "profile_name") {
+			std::cout << profile_name << std::endl;
+			//network
+		} else if (input == "network_type") {
+			std::cout << network_type << std::endl;
+		} else if (input == "netmask_profile") {
+			std::cout << netmask_profile << std::endl;
+
+			//static
+		} else if (input == "ip" && network_type == "static") {
+			std::cout << ip << std::endl;
+		} else if (input == "ip_wlan" && network_type == "static") {
+			std::cout << ip << std::endl;
+		} else if (input == "netmask_short" && network_type == "static") {
+			std::cout << netmask_short << std::endl;
+		} else if (input == "netmask" && network_type == "static") {
+			std::cout << netmask << std::endl;
+		} else if (input == "gateway" && network_type == "static") {
+			std::cout << gateway << std::endl;
+		} else if (input == "dns" && network_type == "static") {
+			std::cout << dns << std::endl;	
+
+			//dhcp
+		} else if (input == "ip" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("ip") << std::endl;	
+		} else if (input == "ip_wlan" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("ip_wlan") << std::endl;	
+		} else if (input == "netmask_short" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("netmask_short") << std::endl;	
+		} else if (input == "netmask" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("netmask") << std::endl;	
+		} else if (input == "gateway" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("gateway") << std::endl;	
+		} else if (input == "dns" && network_type == "dhcp") {
+			std::cout << get_dhcp_info("dns") << std::endl;	
+
+			//system-calls
+		} else if (input == "ip_system") {
+			std::cout << get_dhcp_info("ip") << std::endl;	
+		} else if (input == "ip_wlan_system") {
+			std::cout << get_dhcp_info("ip_wlan") << std::endl;	
+		} else if (input == "netmask_short_system") {
+			std::cout << get_dhcp_info("netmask_short") << std::endl;	
+		} else if (input == "netmask_system") {
+			std::cout << get_dhcp_info("netmask") << std::endl;	
+		} else if (input == "gateway_system") {
+			std::cout << get_dhcp_info("gateway") << std::endl;	
+		} else if (input == "dns_system") {
+			std::cout << get_dhcp_info("dns") << std::endl;	
+
+			//out of profile
+		} else if (input == "ip_profile") {
+			std::cout << ip << std::endl;
+			//netmask_profile is the same as some time before: see above:
+		} else if (input == "gateway_profile") {
+			std::cout << gateway << std::endl;
+		} else if (input == "dns_profile") {
+			std::cout << dns << std::endl;	
+
+
+			//wlan
+		} else if (input == "wlan_active") {
+			std::cout << wlan_active << std::endl;
+		} else if (input == "ssid") {
+			std::cout << ssid << std::endl;
+		} else if (input == "passwd") {
+			std::cout << passwd << std::endl;
+
+			//citrix&rdp
+		} else if (input == "citrix_rdp_type") {
+			std::cout << citrix_rdp_type << std::endl;
+		} else if (input == "citrix_store") {
+			std::cout << citrix_store << std::endl;
+		} else if (input == "citrix_url") {
+			std::cout << citrix_url << std::endl;
+		} else if (input == "rdp_server") {
+			std::cout << rdp_server << std::endl;
+		} else if (input == "rdp_domain") {
+			std::cout << rdp_domain << std::endl;
+			//
+			//NETWORK-MANAGER nm
+		} else if (input == "renew_nm") {
+			if (renew_nm_terminal(std::move(setting), std::move(profile)))
+				std::cout << "0" << std::endl;
+
+			//help if nothing found
+		} else {
+			print_help(_executable);
+		}
+
+	} catch(const developer_error& e) {
+		std::cout << -1 << std::endl;
+		return;
 	}
 }
 
@@ -437,50 +428,33 @@ void print_help(const char *_executable)
 
 /**
  * create the networkmanager-files and restart the nm-service
- * TODO content is nearly the same as in MainWindow::renew_nm(), caution with changes
+ * uses the same function renew_nm_exec_commands(...) as in MainWindow::renew_nm()
  * @param profile Profile of current profile
  * @param setting Setting
  * no user-output (information-box) is used
  * @return true if successful, else false
  */
-bool renew_nm_terminal(std::unique_ptr<Setting> setting, std::unique_ptr<Profile> profile) {
+bool renew_nm_terminal(std::unique_ptr<IniFile> setting, std::unique_ptr<IniFile> profile) {
 
 	bool isOK = true;
 	QString logFolder = "";
 	try {
-		QString logFolder 	= setting.get()->getSetting().value("path").value("path_log");
-		QString path 		= setting.get()->getSetting().value("path").value("path_networkmanager");
-		QString system 		= setting.get()->getSetting().value("system").value("system");
+		QString logFolder 	= setting.get()->get_Map_Value("path", "path_log");
+		QString path 		= setting.get()->get_Map_Value("path", "path_networkmanager");
+		QString system 		= setting.get()->get_Map_Value("system", "system");
 
-		auto& profile_map 	= profile.get()->getProfile();
-		QString ip 		= profile_map.value("network")	.value("network_ip");
-		QString netmask		= profile_map.value("network")	.value("network_netmask");
-		QString gateway		= profile_map.value("network")	.value("network_gateway");
-		QString dns 		= profile_map.value("network")	.value("network_dns");
-		QString network_type  	= profile_map.value("network")	.value("network_type");
+		QString ip 		= profile.get()->get_Map_Value("network", "network_ip");
+		QString netmask		= profile.get()->get_Map_Value("network", "network_netmask");
+		QString gateway		= profile.get()->get_Map_Value("network", "network_gateway");
+		QString dns 		= profile.get()->get_Map_Value("network", "network_dns");
+		QString network_type  	= profile.get()->get_Map_Value("network", "network_type");
 
-		QString wlan_active	= profile_map.value("wlan")	.value("wlan_active");
-		QString ssid 		= profile_map.value("wlan")	.value("wlan_ssid");
-		QString passwd 		= profile_map.value("wlan")	.value("wlan_passwd");
+		QString wlan_active	= profile.get()->get_Map_Value("wlan", "wlan_active");
+		QString ssid 		= profile.get()->get_Map_Value("wlan", "wlan_ssid");
+		QString passwd 		= profile.get()->get_Map_Value("wlan", "wlan_passwd");
 
-		//Create the networkmanager-files:
-		//delete wlan, if wlan is inactive in Map or disabled, because there is no wlan-module
-		if (wlan_active == "false") {
-			remove_wlan_if_existing(path.toStdString());
-		} else {
-			//wlan with static ip
-			if (network_type == "static") {
-				nm_make_file_wlan_static	(system, path, ssid, passwd, ip, netmask, gateway, dns);
-			} else {
-				nm_make_file_wlan_dhcp		(system, path, ssid, passwd);
-			}
-		}
-
-		if (network_type == "static") {
-			nm_make_file_ethernet_static	(system, path, ip, netmask, gateway, dns);
-		} else {
-			nm_make_file_ethernet_dhcp	(system, path);
-		}
+		//controls what happens with the given information of the profile
+		renew_nm_exec_commands(system, path, wlan_active, ssid, passwd, network_type, ip, netmask, gateway, dns);
 
 	} catch(const developer_error& e) {
 		handle_error_terminal(e, logFolder);
@@ -488,10 +462,13 @@ bool renew_nm_terminal(std::unique_ptr<Setting> setting, std::unique_ptr<Profile
 	} catch(const customer_error& e) {
 		handle_error_terminal(e, logFolder);
 		isOK = false;
+	} catch(const customer_info& e) {
+		//just ignore this message, because it is for information like: 
+		//"new added wlan. please wait 30sec till it takes effect"
+		isOK = true;
 	}
 	return isOK;
 }
-
 
 
 
