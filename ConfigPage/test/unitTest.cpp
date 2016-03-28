@@ -32,7 +32,7 @@
 \******************************************************************************/
 
 #include <QTest>
-#include "../../../libs/nm+tools/inc/nm_check_functions.h"
+#include "../../../libs/tools/inc/nm_check_functions.h"
 #include "./unitTest.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 

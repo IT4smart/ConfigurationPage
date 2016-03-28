@@ -39,7 +39,6 @@
 #include "../inc/proxyModel.h"
 #include "../mainwindow.h"
 #include "../ui_mainwindow.h"
-#include "../inc/errorMsg.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 #include "../../../libs/tools/inc/remove_file.h"
 #include "../../../libs/tools/inc/ini_parser.h"
@@ -236,7 +235,7 @@ void MainWindow::delProfile()  {
 * disabling the Save & Quit button, to prevent saving an invalid last_profile
 */
 void MainWindow::new_profile_clicked() {
-		ui->btn_new_profile->setText ("save");
+		ui->btn_profile_new->setText ("save");
 		ui->drdw_profiles->setEditable (true);
 		ui->drdw_profiles->clearEditText ();
 		// no item need to be display by the combobox
@@ -278,9 +277,10 @@ void MainWindow::save_new_profile_clicked() {
 	ui->drdw_profiles->setEditable (false);
 	// make the new profile the currently displayed profile
 	ui->drdw_profiles->setCurrentText(profile.get_Map_Value("global", "profile_name").toUtf8().constData());
-	ui->drdw_profiles->setFocus ();
-	ui->btn_new_profile->setText ("new");
-	ui->btn_save_quit->setEnabled (true);
+	ui->drdw_profiles->setFocus();
+	//TODO TODO TODO new mit sprache ersetzen
+	ui->btn_profile_new->setText("new");
+	ui->btn_save_quit->setEnabled(true);
 	//activate the change-Buttons
 	activate_btn_network_wlan(true);
 	activate_btn_citrix_rdp(true);
@@ -360,8 +360,8 @@ void MainWindow::setDefaultSettingButtonsProfile() {
 	// set the default value for the delete Button of Profiles
 	ui->btn_profile_delete->setEnabled(false);
 	ui->btn_profile_delete->setVisible(false);
-	ui->btn_new_profile->setEnabled (false);
-	ui->btn_new_profile->setVisible (false);
+	ui->btn_profile_new->setEnabled (false);
+	ui->btn_profile_new->setVisible (false);
 }
 
 
@@ -455,6 +455,6 @@ void MainWindow::setDrDwProfilesCurrentNew() {
 	// set the delete button visible and useable
 	ui->btn_profile_delete->setEnabled(true);
 	ui->btn_profile_delete->setVisible(true);
-	ui->btn_new_profile->setEnabled (true);
-	ui->btn_new_profile->setVisible(true);
+	ui->btn_profile_new->setEnabled (true);
+	ui->btn_profile_new->setVisible(true);
 }

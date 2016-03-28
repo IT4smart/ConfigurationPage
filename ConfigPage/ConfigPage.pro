@@ -13,16 +13,16 @@ DESTDIR  = ./
 TARGET   = ConfigPage
 TEMPLATE = app
 
+LIBS += -L/../../libs/tools/Tools -lpsapi
+
 SOURCES  +=  main.cpp \
             mainwindow.cpp \
-            ./src/error.cpp \
             ./src/mainwindow_citrix_rdp.cpp \
             ./src/mainwindow_handle_custom_exceptions.cpp \
             ./src/mainwindow_nm_network_wlan.cpp \
             ./src/mainwindow_picture.cpp \
             ./src/mainwindow_profile.cpp \
             ./src/parameter_return.cpp \
-            ./src/profile.cpp \
             ./src/proxyModel.cpp \
             ../../libs/tools/src/custom_exceptions.cpp \
             ../../libs/tools/src/exec_cmd.cpp \
@@ -31,16 +31,13 @@ SOURCES  +=  main.cpp \
             ../../libs/tools/src/maps.cpp \
             ../../libs/tools/src/remove_file.cpp \
             ../../libs/tools/src/set_permission.cpp \
-            ../../libs/tools/src/setting.cpp \
-            ../../libs/nm+tools/src/nm_check_functions.cpp \
-            ../../libs/nm+tools/src/nm_get_functions.cpp \
-            ../../libs/nm+tools/src/nm_make_file.cpp \
-            ../../libs/nm+tools/src/nm_make_functions.cpp
+            ../../libs/tools/src/nm_check_functions.cpp \
+            ../../libs/tools/src/nm_get_functions.cpp \
+            ../../libs/tools/src/nm_make_file.cpp \
+            ../../libs/tools/src/nm_make_functions.cpp
 
 HEADERS  +=  mainwindow.h \
-            ./inc/errorMsg.h \
             ./inc/parameter_return.h \
-            ./inc/profile.h \
             ./inc/proxyModel.h \
             ../../libs/tools/inc/custom_exceptions.h \
             ../../libs/tools/inc/exec_cmd.h \
@@ -49,10 +46,9 @@ HEADERS  +=  mainwindow.h \
             ../../libs/tools/inc/maps.h \
             ../../libs/tools/inc/remove_file.h \
             ../../libs/tools/inc/set_permission.h \
-            ../../libs/tools/inc/setting.h \
-            ../../libs/nm+tools/inc/nm_check_functions.h \
-            ../../libs/nm+tools/inc/nm_get_functions.h \
-            ../../libs/nm+tools/inc/nm_make_file.h \
-            ../../libs/nm+tools/inc/nm_make_functions.h
+            ../../libs/tools/inc/nm_check_functions.h \
+            ../../libs/tools/inc/nm_get_functions.h \
+            ../../libs/tools/inc/nm_make_file.h \
+            ../../libs/tools/inc/nm_make_functions.h
 
 FORMS    +=  mainwindow.ui

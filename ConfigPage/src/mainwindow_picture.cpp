@@ -39,7 +39,6 @@
 #include "../ui_mainwindow.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 #include "../../../libs/tools/inc/remove_file.h"
-#include "../inc/errorMsg.h"
 
 
 

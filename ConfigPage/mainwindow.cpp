@@ -42,7 +42,6 @@
 #include "./inc/proxyModel.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "./inc/errorMsg.h"
 #include "../../libs/tools/inc/custom_exceptions.h"
 #include "../../libs/tools/inc/paths.h" //for path to setting.ini
 
@@ -60,7 +59,6 @@
  *
  * TODO mit skripten alles ausführen
  *
- * TODO errorMsg datei löschen, evtl in mainwindow_handle_custom_exception.cpp
  */
 
 
@@ -72,7 +70,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
 	setting{}, 
-	profile{}
+	profile{},
+	language{},
+	language_fallback{}
 {
 	ui->setupUi(this);
 
@@ -96,6 +96,33 @@ MainWindow::MainWindow(QWidget *parent) :
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
+///////////////
+	//set language
+	QString language_name = setting.get_Map_Value("language&keyboard", "language");
+	QString language_fallback_name = setting.get_Map_Value("language&keyboard", "language_fallback");
+	QString language_ending = setting.get_Map_Value("language&keyboard", "language_ending");
+	QString language_folder = setting.get_Map_Value("path", "path_languages_system");
+	try {
+		//TODO .ini abspeichern wo anders
+		language = IniFile(language_folder, language_name, language_ending);
+		language_fallback = IniFile(language_folder, language_fallback_name, language_ending);
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
+	QStringList List_of_Languages = language.get_List_of_IniFiles();
+	// add ordered languages list to dropdown and examine the default language
+	int defaultIndex = 0;
+	ui->drdw_languages->clear ();
+	for ( auto str : List_of_Languages) {
+		ui->drdw_languages->addItem(str);
+		if ( !str.compare(setting.get_Map_Value("language&keyboard", "language").toUtf8().constData()))
+			ui->drdw_languages->setCurrentIndex(defaultIndex);
+		++defaultIndex;
+	}
+
+	change_language_GUI();
+
+///////////////
 
 
 	// load last profile
@@ -119,6 +146,8 @@ MainWindow::~MainWindow()
 {
 	delete ui;
 }
+
+
 
 
 /**
@@ -306,6 +335,7 @@ void MainWindow::on_btn_change_citrix_rdp_clicked()
 
 
 
+
 /******************************************************************************\
 |******************************************************************************|
 |* 				slots: profiles		  		      *|
@@ -334,9 +364,9 @@ void MainWindow::on_btn_profile_delete_clicked()
 *
 *  doesn't change the last_profile
 */
-void MainWindow::on_btn_new_profile_clicked() {
+void MainWindow::on_btn_profile_new_clicked() {
 
-	if( !ui->btn_new_profile->text().compare("new")) {
+	if( !ui->btn_profile_new->text().compare("new")) {
 		new_profile_clicked();
 		
 	} else {
@@ -402,7 +432,7 @@ void MainWindow::on_btn_pictures_delete_clicked()
  * show dialog to upload a new picture
  * connect signals to update the new pic and the drdw-pic-list
  */
-void MainWindow::on_btn_pictures_clicked()
+void MainWindow::on_btn_pictures_upload_clicked()
 {
 	QString usbPath = setting.get_Map_Value("path", "path_usb");
 	QString outPath = setting.get_Map_Value("path", "path_client_logo");
@@ -441,7 +471,7 @@ void MainWindow::selectNewPicture(const QString &logo)
 /**
  * show dialog to upload a certificate
  */
-void MainWindow::on_btn_certificates_clicked()
+void MainWindow::on_btn_certificates_upload_clicked()
 {
 	QString usbPath = setting.get_Map_Value("path", "path_usb");
 	QString outPath = setting.get_Map_Value("path", "path_certificates");
@@ -453,3 +483,194 @@ void MainWindow::on_btn_certificates_clicked()
 
 
 
+/******************************************************************************\
+|******************************************************************************|
+|* 			slots: languages and keyboard  			      *|
+|******************************************************************************|
+\******************************************************************************/
+/**
+ *  TODO intended? save the current language as default language in the setting.ini
+ *
+ *  on each change of the dropdown menu languages
+ *  load & print the current language
+ *  @param language_Name Name of the selected language
+ */
+void MainWindow::on_drdw_languages_activated(const QString &language_Name) 
+{
+	try {
+		//set the name and reload Map
+		language.set_IniFile_Name(language_Name);
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
+	//uses the values saved in the current language and the language_fallback
+	change_language_GUI();
+	//TODO is this intented to be done?
+	set_current_language_to_default();
+}
+
+/**
+ *  save the current language as default language in the setting.ini
+ *  TODO maybe set the language system wide to this language
+ */
+void MainWindow::set_current_language_to_default() {
+	try {
+		//set the name and reload Map
+		setting.set_Map_Value("language&keyboard", "language", language.get_IniFile_Name());
+		setting.save_Map_to_IniFile();
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
+}
+
+/**
+ * Take the values in the IniFile language
+ * and try to set all values that are shown on the GUI
+ * if a value in language is emtpy ("") then use the value saved in the language_fallback
+ *
+ */
+void MainWindow::change_language_GUI() {
+	QString lb = "label";
+	QString btn = "button";
+	
+	//title
+	setWindowTitle(
+			(language.get_Map_Value(lb, "title") != "") 
+			? language.get_Map_Value(lb, "title") 
+			: language_fallback.get_Map_Value(lb, "title"));
+	//language_keyboard
+	ui->lb_drdw_languages->setText(
+			(language.get_Map_Value(lb, "language") != "") 
+			? language.get_Map_Value(lb, "language") 
+			: language_fallback.get_Map_Value(lb, "language"));
+	//profile
+	ui->lb_drdw_profiles->setText(
+			(language.get_Map_Value(lb, "profile") != "") 
+			? language.get_Map_Value(lb, "profile") 
+			: language_fallback.get_Map_Value(lb, "profile"));	
+	ui->btn_profile_new->setText(
+			(language.get_Map_Value(btn, "profile_new") != "") 
+			? language.get_Map_Value(btn, "profile_new") 
+			: language_fallback.get_Map_Value(btn, "profile_new"));	
+	ui->btn_profile_delete->setText(
+			(language.get_Map_Value(btn, "profile_delete") != "") 
+			? language.get_Map_Value(btn, "profile_delete") 
+			: language_fallback.get_Map_Value(btn, "profile_delete"));	
+	//network
+	ui->btn_change_network->setText(
+			(language.get_Map_Value(btn, "network") != "") 
+			? language.get_Map_Value(btn, "network") 
+			: language_fallback.get_Map_Value(btn, "network"));
+	ui->gb_network->setTitle(
+			(language.get_Map_Value(lb, "frame_network") != "") 
+			? language.get_Map_Value(lb, "frame_network") 
+			: language_fallback.get_Map_Value(lb, "frame_network"));
+	ui->rdb_network_type_dhcp->setText(
+			(language.get_Map_Value(lb, "network_dhcp") != "") 
+			? language.get_Map_Value(lb, "network_dhcp") 
+			: language_fallback.get_Map_Value(lb, "network_dhcp"));
+	ui->rdb_network_type_static->setText(
+			(language.get_Map_Value(lb, "network_static") != "") 
+			? language.get_Map_Value(lb, "network_static") 
+			: language_fallback.get_Map_Value(lb, "network_static"));
+	ui->lb_network_ip->setText(
+			(language.get_Map_Value(lb, "network_ip") != "") 
+			? language.get_Map_Value(lb, "network_ip") 
+			: language_fallback.get_Map_Value(lb, "network_ip"));
+	ui->lb_network_gateway->setText(
+			(language.get_Map_Value(lb, "network_gateway") != "") 
+			? language.get_Map_Value(lb, "network_gateway") 
+			: language_fallback.get_Map_Value(lb, "network_gateway"));
+	ui->lb_network_netmask->setText(
+			(language.get_Map_Value(lb, "network_netmask") != "") 
+			? language.get_Map_Value(lb, "network_netmask") 
+			: language_fallback.get_Map_Value(lb, "network_netmask"));
+	ui->lb_network_dns->setText(
+			(language.get_Map_Value(lb, "network_dns") != "") 
+			? language.get_Map_Value(lb, "network_dns") 
+			: language_fallback.get_Map_Value(lb, "network_dns"));
+	//wlan
+	ui->btn_change_wlan->setText(
+			(language.get_Map_Value(btn, "wlan") != "") 
+			? language.get_Map_Value(btn, "wlan") 
+			: language_fallback.get_Map_Value(btn, "wlan"));
+	ui->gb_wlan->setTitle(
+			(language.get_Map_Value(lb, "frame_wlan") != "") 
+			? language.get_Map_Value(lb, "frame_wlan") 
+			: language_fallback.get_Map_Value(lb, "frame_wlan"));
+	ui->lb_wlan_ssid->setText(
+			(language.get_Map_Value(lb, "wlan_ssid") != "") 
+			? language.get_Map_Value(lb, "wlan_ssid") 
+			: language_fallback.get_Map_Value(lb, "wlan_ssid"));
+	ui->chk_wlan_active->setText(
+			(language.get_Map_Value(lb, "wlan_active") != "") 
+			? language.get_Map_Value(lb, "wlan_active") 
+			: language_fallback.get_Map_Value(lb, "wlan_active"));
+	ui->lb_wlan_passwd->setText(
+			(language.get_Map_Value(lb, "wlan_password") != "") 
+			? language.get_Map_Value(lb, "wlan_password") 
+			: language_fallback.get_Map_Value(lb, "wlan_password"));
+	//citrix_rdp
+	ui->btn_change_citrix_rdp->setText(
+			(language.get_Map_Value(btn, "citrix_rdp") != "") 
+			? language.get_Map_Value(btn, "citrix_rdp") 
+			: language_fallback.get_Map_Value(btn, "citrix_rdp"));
+	ui->gb_citrix_rdp->setTitle(
+			(language.get_Map_Value(lb, "frame_citrix_rdp") != "") 
+			? language.get_Map_Value(lb, "frame_citrix_rdp") 
+			: language_fallback.get_Map_Value(lb, "frame_citrix_rdp"));
+	ui->rdb_citrix_rdp_type_citrix->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_citrix") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_citrix") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix"));
+	ui->rdb_citrix_rdp_type_rdp->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_rdp") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_rdp") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp"));
+	ui->lb_citrix_rdp_citrix_store->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_citrix_store") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_citrix_store") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix_store"));
+	ui->lb_citrix_rdp_citrix_url->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_citrix_url") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_citrix_url") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix_url"));
+	ui->lb_citrix_rdp_rdp_server->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_rdp_server") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_rdp_server") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp_server"));
+	ui->lb_citrix_rdp_rdp_domain->setText(
+			(language.get_Map_Value(lb, "citrix_rdp_rdp_domain") != "") 
+			? language.get_Map_Value(lb, "citrix_rdp_rdp_domain") 
+			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp_domain"));
+	//logo_certificate
+	ui->btn_pictures_delete->setText(
+			(language.get_Map_Value(btn, "logo_delete") != "") 
+			? language.get_Map_Value(btn, "logo_delete") 
+			: language_fallback.get_Map_Value(btn, "logo_delete"));
+	ui->gb_logo_certificate->setTitle(
+			(language.get_Map_Value(lb, "frame_logo_certificate") != "") 
+			? language.get_Map_Value(lb, "frame_logo_certificate") 
+			: language_fallback.get_Map_Value(lb, "frame_logo_certificate"));
+	ui->btn_pictures_upload->setText(
+			(language.get_Map_Value(btn, "logo_upload") != "") 
+			? language.get_Map_Value(btn, "logo_upload") 
+			: language_fallback.get_Map_Value(btn, "logo_upload"));
+	ui->btn_certificates_upload->setText(
+			(language.get_Map_Value(btn, "certificate_upload") != "") 
+			? language.get_Map_Value(btn, "certificate_upload") 
+			: language_fallback.get_Map_Value(btn, "certificate_upload"));
+	ui->lb_logo_configure->setText(
+			(language.get_Map_Value(lb, "logo_configure") != "") 
+			? language.get_Map_Value(lb, "logo_configure") 
+			: language_fallback.get_Map_Value(lb, "logo_configure"));
+	//cancel & save_quit
+	ui->btn_cancel->setText(
+			(language.get_Map_Value(btn, "cancel") != "") 
+			? language.get_Map_Value(btn, "cancel") 
+			: language_fallback.get_Map_Value(btn, "cancel"));
+	ui->btn_save_quit->setText(
+			(language.get_Map_Value(btn, "quit_and_save") != "") 
+			? language.get_Map_Value(btn, "quit_and_save") 
+			: language_fallback.get_Map_Value(btn, "quit_and_save"));
+}

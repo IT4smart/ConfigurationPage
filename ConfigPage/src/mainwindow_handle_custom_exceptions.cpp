@@ -35,7 +35,6 @@
 #include <iostream>
 
 #include "../mainwindow.h"
-#include "../inc/errorMsg.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
 
 /**

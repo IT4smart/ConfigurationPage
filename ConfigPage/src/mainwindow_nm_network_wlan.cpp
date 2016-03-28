@@ -39,12 +39,11 @@
 #include <vector>
 #include "../mainwindow.h"
 #include "../ui_mainwindow.h"
-#include "../inc/errorMsg.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
-#include "../../../libs/nm+tools/inc/nm_make_functions.h"
-#include "../../../libs/nm+tools/inc/nm_make_file.h"
+#include "../../../libs/tools/inc/nm_make_functions.h"
+#include "../../../libs/tools/inc/nm_make_file.h"
 //#include "../inc/nm_check_functions.h"
-#include "../../../libs/nm+tools/inc/nm_get_functions.h" 	//for wlan-module: yes or no
+#include "../../../libs/tools/inc/nm_get_functions.h" 	//for wlan-module: yes or no
 
 
 

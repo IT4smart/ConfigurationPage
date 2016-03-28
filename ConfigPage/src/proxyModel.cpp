@@ -34,7 +34,7 @@
 //#include "../inc/custom_exceptions.h"
 #include "../mainwindow.h"
 #include "../inc/proxyModel.h"
-#include "../inc/errorMsg.h"
+#include "../../../libs/tools/inc/custom_exceptions.h"
 
 
 

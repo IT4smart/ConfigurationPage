@@ -96,10 +96,10 @@ add_executable(
 #find the library
 find_library(
 	LIB_I_NEED  
-	NAMES lib_NM+Tools.a
+	NAMES lib_Tools.a
 	#PATHS /data/Dokumente/it4s/libs/tools/ 
 	#PATHS ../../libs/lib/ 
-	PATHS ../../libs/nm+tools/ 
+	PATHS ../../libs/tools/ 
 )
 
 if(${LIB_I_NEED} STREQUAL "LIB_I_NEED-NOTFOUND")

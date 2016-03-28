@@ -114,6 +114,11 @@ class MainWindow : public QMainWindow
 		void activate_rdp(			bool input);
 		bool check_citrix_rdp_input();
 
+		//language
+
+		void change_language_GUI();
+		void set_current_language_to_default();
+
 
 
 
@@ -134,7 +139,7 @@ class MainWindow : public QMainWindow
 		//profile
 		void on_btn_profile_delete_clicked();
 		void on_drdw_profiles_activated(const QString &profile_Name);
-		void on_btn_new_profile_clicked();
+		void on_btn_profile_new_clicked();
 
 		//citrix & rdp
 		void on_rdb_citrix_rdp_type_citrix_clicked();
@@ -144,17 +149,22 @@ class MainWindow : public QMainWindow
 		//pictures
 		void on_drdw_pictures_activated(const QString &arg1);
 		void on_btn_pictures_delete_clicked();
-		void on_btn_pictures_clicked();
+		void on_btn_pictures_upload_clicked();
 		void selectNewPicture(const QString &logo);
 
 		//certificates
-		void on_btn_certificates_clicked();
+		void on_btn_certificates_upload_clicked();
+
+		//language & keyboard
+		void on_drdw_languages_activated(const QString &language_Name);
 
 private:
 		// caused by the change of the user and not only by manually indexChange
 		Ui::MainWindow *ui;
 		IniFile setting;
 		IniFile profile;
+		IniFile language;
+		IniFile language_fallback;
 
 };
 

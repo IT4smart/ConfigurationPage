@@ -9,6 +9,7 @@ ConfigPage.cbp
 ConfigPage.pro.bak
 ConfigPage.pro.user.bak
 ConfigPage_*
+ConfigPage.pro.user.*
 Makefile
 cmake_install.cmake
 doc
