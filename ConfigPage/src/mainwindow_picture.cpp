@@ -75,7 +75,7 @@ QStringList MainWindow::readInPictures()
 {
 	QDirIterator it (this->setting.get_Map_Value("path", "path_client_logo"),
 			QDirIterator::Subdirectories);
-	QList<QString> list;
+	QStringList list;
 	while (it.hasNext()) {
 		//take only the last token
 		QString fl = it.next().split("/").back();
