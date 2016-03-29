@@ -43,7 +43,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../../libs/tools/inc/custom_exceptions.h"
-#include "../../libs/tools/inc/paths.h" //for path to setting.ini
+#include "../../libs/tools/inc/paths.h" 		//for path to setting.ini
 
 //TODO DOCUMENTATION LIKE THIS:
 /**
@@ -56,8 +56,16 @@
 
 /**
  * TODO log file folder automatisch erstellen
+	- for all folders, that are normally not there at Start, the folders will be created if necessary
+	  e.g. profiles, log, client_logo, certificates
  *
  * TODO mit skripten alles ausführen
+ *
+ * TODO exceptions mit sprachen
+ *
+ * TODO falls kein Profil vorhanden ist, ein standard-profil verwenden, welches dhcp, wlan deaktiviert und rdp mit X beinhaltet
+ *
+ * TODO certificates hochladen mit funktion ausstatten
  *
  */
 
@@ -366,9 +374,8 @@ void MainWindow::on_btn_profile_delete_clicked()
 */
 void MainWindow::on_btn_profile_new_clicked() {
 
-	if( !ui->btn_profile_new->text().compare("new")) {
+	if( !ui->btn_profile_new->text().compare(language.get_Map_Value("button", "profile_new"))) {
 		new_profile_clicked();
-		
 	} else {
 		save_new_profile_clicked();
 	}
@@ -673,4 +680,14 @@ void MainWindow::change_language_GUI() {
 			(language.get_Map_Value(btn, "quit_and_save") != "") 
 			? language.get_Map_Value(btn, "quit_and_save") 
 			: language_fallback.get_Map_Value(btn, "quit_and_save"));
+}
+
+
+/**
+ *  de/activation of the language dropdown-list
+ *  @param input true=activate, false=deactivate
+ */
+void MainWindow::activate_btn_language(bool input)
+{
+	ui->drdw_languages	->setEnabled(input);
 }

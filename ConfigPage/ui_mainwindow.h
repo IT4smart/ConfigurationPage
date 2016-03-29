@@ -304,8 +304,8 @@ public:
         lb_drdw_profiles->setText(QApplication::translate("MainWindow", "Profiles:", 0));
         btn_save_quit->setText(QApplication::translate("MainWindow", "Save && &Quit", 0));
         btn_profile_delete->setText(QApplication::translate("MainWindow", "delete ", 0));
-        lb_picture_left->setText(QApplication::translate("MainWindow", "TextLabel", 0));
-        lb_picture_right->setText(QApplication::translate("MainWindow", "TextLabel", 0));
+        lb_picture_left->setText(QApplication::translate("MainWindow", "Client Logo", 0));
+        lb_picture_right->setText(QApplication::translate("MainWindow", "IT4S Logo", 0));
         btn_profile_new->setText(QApplication::translate("MainWindow", "new", 0));
         gb_citrix_rdp->setTitle(QApplication::translate("MainWindow", "Citrix && RDP", 0));
         lb_citrix_rdp_citrix_store->setText(QApplication::translate("MainWindow", "Citrix-Store:", 0));

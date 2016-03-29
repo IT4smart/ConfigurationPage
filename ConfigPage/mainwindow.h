@@ -90,7 +90,7 @@ class MainWindow : public QMainWindow
 
 		//DrDw-Profiles
 		void setDefaultSettingButtonsProfile();
-		void setDrDwProfilesList(		QList<QString> listOfProfiles);
+		void setDrDwProfilesList(		QStringList listOfProfiles);
 		void setDrDwProfilesOpt();
 		void setDrDwProfilesOne();
 		void setDrDwProfilesCurrent();
@@ -118,6 +118,7 @@ class MainWindow : public QMainWindow
 
 		void change_language_GUI();
 		void set_current_language_to_default();
+		void activate_btn_language(bool input);
 
 
 

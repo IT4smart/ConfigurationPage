@@ -405,7 +405,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>Client Logo</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_picture_right">
@@ -418,7 +418,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>IT4S Logo</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_profile_new">

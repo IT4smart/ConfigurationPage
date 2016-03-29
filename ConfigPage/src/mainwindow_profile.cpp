@@ -42,6 +42,7 @@
 #include "../../../libs/tools/inc/custom_exceptions.h"
 #include "../../../libs/tools/inc/remove_file.h"
 #include "../../../libs/tools/inc/ini_parser.h"
+#include "../../../libs/tools/inc/set_permission.h" 	//for the rw permissions for all users after making a new profile
 
 
 
@@ -193,39 +194,42 @@ void MainWindow::delProfile()  {
 	}
 
 
-	// delete profile out of the profiles-list, therefore use the constructor, 
+	//check for last_profile in setting.ini
+	QString last_profile = setting.get_Map_Value("profile", "last_profile");
+	bool last_profile_deleted = false;
+
+	//if deleted profile == last_profile; compare returns 0 if equal
+	if ( !last_profile.compare(drdw_current)) {
+		last_profile_deleted = true;
+		QStringList old_List = profile.get_List_of_IniFiles();
+		QString new_profile_Name = old_List.at(0);
+		//if the old profile was on first position, take the Profile on second position for new profile
+		if (!last_profile.compare(old_List.at(0)))
+			new_profile_Name = old_List.at(1);
+
+		//change the name of the current profile to the new profile
+		//save the now new profile from ui as default into Map and disk
+		//reset the last_profile to the new last profile
+		ui->drdw_profiles->setCurrentText(new_profile_Name);
+		save_last_profile_and_client_logo();
+		last_profile = setting.get_Map_Value("profile", "last_profile");
+
+		//deleted profile != last_profile
+	}
+	// remove the deleted profile out of the profiles-list, therefore use the constructor, 
 	// that reads out all files in the iniFolder
 	reload_profile();
 
 	// update the dropdown list
+	// Select the last_profile and reload it's settings
 	setDrDwProfilesList(profile.get_List_of_IniFiles());
+	on_drdw_profiles_activated(last_profile);
 
-	//check for last_profile in setting.ini
-	QString last_profile = setting.get_Map_Value("profile", "last_profile");
-	
-	//////////////
-	//if the deleted profile was the last_profile*/
-	//
-	//compare returns 0 if equal
-	if ( !last_profile.compare(drdw_current)) {
-		//save the now new profile as default into Map and disk
-		save_last_profile_and_client_logo();
-
+	//important that everything happens before, otherwise an exception in renew_nm could lead to a not updated List_of_IniFiles
+	if (last_profile_deleted) {
 		//load the nm-settings of the new last_profile-map and handles incorrectness
 		renew_nm();
-		//reload the settings of the new profile
-		on_drdw_profiles_activated(ui->drdw_profiles->currentText());
-	} else {
-		//Select the last_profile and reload it's settings
-		on_drdw_profiles_activated(last_profile);
 	}
-	
-	/*deleted everywhere
-	//why? not needed!
-	if( !profile.getLastProfileName().compare(drdw_current)) {
-		profile.setLastProfileName ( QString::null );
-	}
-	*/
 }
 
 
@@ -235,9 +239,9 @@ void MainWindow::delProfile()  {
 * disabling the Save & Quit button, to prevent saving an invalid last_profile
 */
 void MainWindow::new_profile_clicked() {
-		ui->btn_profile_new->setText ("save");
-		ui->drdw_profiles->setEditable (true);
-		ui->drdw_profiles->clearEditText ();
+		ui->btn_profile_new->setText(language.get_Map_Value("button", "profile_save"));
+		ui->drdw_profiles->setEditable(true);
+		ui->drdw_profiles->clearEditText();
 		// no item need to be display by the combobox
 		// no profile renaming possible
 		ui->drdw_profiles->clear();
@@ -245,9 +249,11 @@ void MainWindow::new_profile_clicked() {
 						//otherwise in dhcp settings can be changed, but this is an unwanted behaviour
 		//Important: Disables the Save&Quit-Button and all change buttons:
 		//	to prevent saving an invalid last_profile
-		ui->btn_save_quit->setEnabled (false);
+		ui->btn_profile_delete->setEnabled(false);
+		ui->btn_save_quit->setEnabled(false);
 		activate_btn_network_wlan(false);
 		activate_btn_citrix_rdp(false);
+		activate_btn_language(false);
 }
 
 /**
@@ -278,12 +284,14 @@ void MainWindow::save_new_profile_clicked() {
 	// make the new profile the currently displayed profile
 	ui->drdw_profiles->setCurrentText(profile.get_Map_Value("global", "profile_name").toUtf8().constData());
 	ui->drdw_profiles->setFocus();
-	//TODO TODO TODO new mit sprache ersetzen
-	ui->btn_profile_new->setText("new");
+	//reset the button-name to new
+	ui->btn_profile_new->setText(language.get_Map_Value("button", "profile_new"));
+	ui->btn_profile_delete->setEnabled(true);
 	ui->btn_save_quit->setEnabled(true);
 	//activate the change-Buttons
 	activate_btn_network_wlan(true);
 	activate_btn_citrix_rdp(true);
+	activate_btn_language(true);
 
 	print_customer_info(
 			QString("Profile successfully added. \n") +
@@ -334,6 +342,10 @@ void MainWindow::check_input_and_save_new_profile() {
 
 		//save this new map to harddisk 
 		ini_saver(profileFullName, profile.get_Map());
+
+		//so that there won't be problems if the executing user changes
+		set_permission_all_rw(profileFullName.toStdString()); //throw developer_error
+
 		// load new profile and new profiles list 
 		profile = IniFile(profilesFolder, profilesNewName, profilesEnding);
 	} catch(const developer_error& e) {
@@ -370,7 +382,7 @@ void MainWindow::setDefaultSettingButtonsProfile() {
  *  set the names of all Profiles given in the DropDown Profiles and set the default one
  *  @param ListOfProfiles list with all profile names that will be displayed in the DropDown Menu
  */
-void MainWindow::setDrDwProfilesList(QList<QString> listOfProfiles)
+void MainWindow::setDrDwProfilesList(QStringList listOfProfiles)
 {
 	// add ordered profiles list to dropdown and examine the default profile
 	int defaultIndex = 0;

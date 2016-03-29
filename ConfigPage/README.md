@@ -139,3 +139,11 @@ Maybe this is an individual problem, because of some installed services, but con
 - Logo:
 	- bigger:
 		to have bigger Logos, you just have to resize the TextLabel where the Logos are located in the QtCreator
+
+- Permissions: 
+	- all new profiles and log-files have read&write permissions set for everyone if created new
+	  shouldn't be necessary for new logos and certificates. and the setting.ini should be set right before
+
+- Make new Folder:
+	- for all folders, that are normally not there at Start, the folders will be created if necessary
+	  e.g. profiles, log, client_logo, certificates
