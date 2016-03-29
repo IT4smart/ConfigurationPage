@@ -39,6 +39,7 @@
 
 //the parameter won't be changed in the function, therefore a "const"
 void parameter_return(const char* _executable, const char* _input);
+void set_parameter(const char* _executable, const char* _command, const char* _value);
 void print_help(const char* _executable);
 void return_profile_info(const char *_executable, std::string input);
 std::string get_dhcp_info(std::string input);

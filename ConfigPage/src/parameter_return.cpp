@@ -78,7 +78,61 @@ void parameter_return(const char *_executable, const char *_input)
 }
 
 
+/**
+ *  print 1 on succes and error-message on failure
+ *  Print the correct output/return value for each command to the stdout  
+ *  if input doesn't fit any known parameter, print help message
+ *  @param _executable how the programm will be executed, e.g. ./execute
+ *  @param _command give the variable/parameter-identifier that shall be set, e.g. set_citrix_store
+ *  @param _value the value to be set. it is automatically non-empty, so no need to check this
+ */
+void set_parameter(const char* _executable, const char* _command, const char* _value) {
+	QString command 	= _command;
+	QString value 		= _value;
+	(void) _executable;
+	//std::string command 	= _command;
+	//std::string value 	= _value;
+	try {
+		std::unique_ptr<IniFile> setting(new IniFile(SETTING_PATH, SETTING_FILE, SETTING_ENDING));
+		// load last profile
+		QString profilesFolder 	= setting.get()->get_Map_Value("path", "path_profiles");
+		QString profilesLast 	= setting.get()->get_Map_Value("profile", "last_profile");
+		QString profilesEnding 	= setting.get()->get_Map_Value("profile", "profile_ending");
+		std::unique_ptr<IniFile> profile(new IniFile(profilesFolder, profilesLast, profilesEnding));
 
+		QString group 	= "";
+		QString key 	= "";
+		//check for citrix&rdp
+		if ( 		   command == "set_citrix_url" 
+				|| command == "set_citrix_store" 
+				|| command == "set_rdp_domain" 
+				|| command == "set_rdp_server") {
+			//set the right group and value like in the profile.ini
+			group = "citrix&rdp";
+			key = "citrix_rdp_" + command.remove(0,4);
+			//std::cout << key << std::endl;
+		}
+
+		//check for other setters but then don't forget to control the input: TODO
+
+		//if no valid command, the group will be empty
+		if (group == "" || key == "") {
+			std::cout << "invalid argument: '" << command << "'" << std::endl;
+			return;
+		}
+
+		//set the Profile-Map
+		profile.get()->set_Map_Value(group, key, value);
+		//save Map to Disk
+		profile.get()->save_Map_to_IniFile();
+
+	} catch(const developer_error& e) {
+		std::cout << e.what() << std::endl;
+		return;
+	}
+	//no exception, no failure
+	std::cout << "1" << std::endl;
+}
 
 
 
@@ -350,12 +404,15 @@ void print_help(const char *_executable)
 	std::string executable = _executable;
 	std::cout 
 		<< "\n" << "USEAGE:" 
-		<< "\n" << "\t" << executable << " [0 Option] to start GUI" 
-		<< "\n" << "\t" << executable << " [1 Option]" 
+		<< "\n" << "\t" << executable << " [0 Option] to start GUI, recommended as root" 
+		<< "\n" << "\t" << executable << " [1 Option] to get values"
+		<< "\n" << "\t" << executable << " [2 Options] to set values"
 		<< "\n";
+	std::cout << "\n[1 Option]"
+		<< "\n" << "\t" << executable << " PARAMETER";
 
 	std::cout 
-		<< "\n" << "PARMETER:" 
+		<< "\n" << "PARAMETER:" 
 		<< "\n" << "\t-v | --version		Print the version" 					
 		<< "\n" << "\t-h | --help		Print this help-message" 				
 		<< "\n"
@@ -366,8 +423,8 @@ void print_help(const char *_executable)
 		<< "\n" << "\t[GENERAL]\n"
 		<< "\n" << "\tprofile_info		Print all information from the profile (ip, etc; no system-call used)" 
 		<< "\n" << "\tsystem			Print the used system out of the setting.ini" 
-		<< "\n" << "\tlanguage			Print the used language out of the setting.ini" 
-		<< "\n" << "\tkeyboard			Print the used keyboard out of the setting.ini" 
+		<< "\n" << "\tlanguage		Print the used language out of the setting.ini" 
+		<< "\n" << "\tkeyboard		Print the used keyboard out of the setting.ini" 
 		<< "\n" << "\tclient_logo		Print the path + name of the client_logo" 
 		<< "\n" << "\trenew_nm		needs root-rights (sudo)"
 		<< "\n" << "\t\t			Create the NetworkManager-file(s) of the current Profile and restart it" 
@@ -421,7 +478,23 @@ void print_help(const char *_executable)
 		<< "\n";
 
 	std::cout 
-		<< "\n" << "ERROR:\n\treturn -1 on error" 
+		<< "\n" << "ERROR:"
+		<< "\n" << "\treturn -1 on error" 
+		<< "\n\n";
+	std::cout << "\n[2 Options]"
+		<< "\n" << "\t" << executable << " PARAMETER VALUE"
+		<< "\n" << "PARAMETER:";
+	std::cout 
+		<< "\n" << "\t[Setter]\n"
+		<< "\n" << "\tset_citrix_store	Set the value of the current profile of the key: citrix_rdp_citrix_store"
+		<< "\n" << "\tset_citrix_url		Set the value of the current profile of the key: citrix_rdp_citrix_url"
+		<< "\n" << "\tset_rdp_domain		Set the value of the current profile of the key: citrix_rdp_rdp_domain"
+		<< "\n" << "\tset_rdp_server		Set the value of the current profile of the key: citrix_rdp_rdp_server"
+		<< "\n"; 
+	std::cout 
+		<< "\n" << "ERROR/RETURN-VALUE:"
+		<< "\n" << "\treturn 1 on success" 
+		<< "\n" << "\treturn error-message on failure"
 		<< "\n\n";
 }
 

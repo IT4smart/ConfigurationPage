@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
 	//the executable with ONE argument
 	} else if (argc == 2) {
 		parameter_return(argv[0], argv[1]);
-
+	} else if (argc == 3) {
+		set_parameter(argv[0], argv[1], argv[2]);
 	} else {
 		std::cout << "Too many arguments, see:" << std::endl;
 		parameter_return(argv[0], "-h");
