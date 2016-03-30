@@ -158,6 +158,9 @@
      <property name="text">
       <string>dhcp</string>
      </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QRadioButton" name="rdb_network_type_static">
      <property name="geometry">
@@ -615,6 +618,9 @@
     </property>
     <property name="text">
      <string>RDP</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QGroupBox" name="gb_logo_certificate">

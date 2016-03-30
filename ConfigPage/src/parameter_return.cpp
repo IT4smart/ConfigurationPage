@@ -345,51 +345,58 @@ std::string get_dhcp_info(std::string input)
 	std::string output;
 	std::string cmd;
 
-	bool netmask_long = false;
-	if (input == "ip") {
-		cmd = "ip address |grep -A 2 ' e[a-zA-Z0-9]*0: '| grep inet | sed 's/\\// /g' | awk {'print $2'}| tr -d '\n'";
-
-	} else if (input == "ip_wlan") {
-		cmd = "ip address |grep -A 2 ' wl.*: ' | grep inet | sed 's/\\// /g' | awk {'print $2'}| tr -d '\n'";
-
-	} else if (input == "netmask_short") {
-		cmd = "ip address |grep -A 2 ' e[a-zA-Z0-9]*0: '| grep inet | sed 's/\\// /g' | awk {'print $3'}| tr -d '\n'";
-
-	} else if (input == "netmask") {
-		cmd = "ip address |grep -A 2 ' e[a-zA-Z0-9]*0: '| grep inet | sed 's/\\// /g' | awk {'print $3'}| tr -d '\n'";
-		netmask_long = true;
-
-	} else if (input == "gateway") {
-		cmd = "ip route | grep default | head -1 | awk {'print $3'} |tr -d '\n'";
-
-	} else if (input == "dns") {
-		cmd = "cat /etc/resolv.conf | grep nameserver | awk {'print $2\";\"'} |tr -d '\n'";
-	}
-
-	//execute the cmd:
-	//exec_cmd returns "" if something went wrong and throws exception
 	try {
-		output = exec_cmd(cmd);
+		//get script_info from setting.ini
+		std::unique_ptr<IniFile> setting(new IniFile(SETTING_PATH, SETTING_FILE, SETTING_ENDING));
 
-	} catch (const developer_error& e){
+		QString script_path 	= setting.get()->get_Map_Value("path", "path_scripts");
+		QString script = "";
+
+		bool netmask_long = false;
+		if (input == "ip") {
+			script 		= setting.get()->get_Map_Value("script", "get_ip_ethernet");
+		} else if (input == "ip_wlan") {
+			script 		= setting.get()->get_Map_Value("script", "get_ip_wlan");
+		} else if (input == "netmask_short") {
+			script 		= setting.get()->get_Map_Value("script", "get_netmask");
+		} else if (input == "netmask") {
+			netmask_long = true;
+			script 		= setting.get()->get_Map_Value("script", "get_netmask");
+		} else if (input == "gateway") {
+			script 		= setting.get()->get_Map_Value("script", "get_gateway");
+		} else if (input == "dns") {
+			script 		= setting.get()->get_Map_Value("script", "get_dns");
+		}
+
+		cmd = script_path.toStdString() + "/" + script.toStdString();
+		//execute the cmd:
+		//exec_cmd returns "" if something went wrong and throws exception
+		try {
+			output = exec_cmd(cmd);
+
+		} catch (const developer_error& e){
+			return "-1";
+		}
+
+		//netmask-conversion
+		if (netmask_long) {
+			QString netmask;
+			//if conversion from netmask_x to netmask_wxyz fails, throws only customer_errors
+			try {
+				netmask 	= nm_make_netmask_wxyz(QString::fromStdString(output));
+			} catch (const customer_error& e){
+				netmask = "-1";
+			}
+			output = netmask.toStdString();
+		}
+		//if empty return of exec_cmd
+		if (output == "")
+			output = "-1";
+		return output;
+	
+	} catch(const developer_error& e) {
 		return "-1";
 	}
-
-	//netmask-conversion
-	if (netmask_long) {
-		QString netmask;
-		//if conversion from netmask_x to netmask_wxyz fails, throws only customer_errors
-		try {
-			netmask 	= nm_make_netmask_wxyz(QString::fromStdString(output));
-		} catch (const customer_error& e){
-			netmask = "-1";
-		}
-		output = netmask.toStdString();
-	}
-	//if empty return of exec_cmd
-	if (output == "")
-		output = "-1";
-	return output;
 }
 
 

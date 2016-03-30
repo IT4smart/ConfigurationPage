@@ -43,6 +43,7 @@
 #include "../../../libs/tools/inc/remove_file.h"
 #include "../../../libs/tools/inc/ini_parser.h"
 #include "../../../libs/tools/inc/set_permission.h" 	//for the rw permissions for all users after making a new profile
+#include "../../../libs/tools/inc/exec_cmd.h" 		//make directories
 
 
 
@@ -69,6 +70,21 @@ void MainWindow::reload_profile() {
 	}	
 }
 
+
+
+/**
+ *  save the last used profile 
+ *  sets this value in the MapMap of setting and saves it to the IniFile on disk
+ */
+void MainWindow::save_last_profile_from_ui() {
+	// save last used profile as default
+	try {
+		setting.set_Map_Value("profile", "last_profile", ui->drdw_profiles->currentText());
+		setting.save_Map_to_IniFile();
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
+}
 
 
 
@@ -211,7 +227,7 @@ void MainWindow::delProfile()  {
 		//save the now new profile from ui as default into Map and disk
 		//reset the last_profile to the new last profile
 		ui->drdw_profiles->setCurrentText(new_profile_Name);
-		save_last_profile_and_client_logo();
+		save_last_profile_from_ui();
 		last_profile = setting.get_Map_Value("profile", "last_profile");
 
 		//deleted profile != last_profile
@@ -239,7 +255,10 @@ void MainWindow::delProfile()  {
 * disabling the Save & Quit button, to prevent saving an invalid last_profile
 */
 void MainWindow::new_profile_clicked() {
-		ui->btn_profile_new->setText(language.get_Map_Value("button", "profile_save"));
+	QString profile_save = (language.get_Map_Value("button", "profile_save") != "") 
+			? language.get_Map_Value("button", "profile_save") 
+			: language_fallback.get_Map_Value("button", "profile_save");
+		ui->btn_profile_new->setText(profile_save);
 		ui->drdw_profiles->setEditable(true);
 		ui->drdw_profiles->clearEditText();
 		// no item need to be display by the combobox
@@ -284,8 +303,12 @@ void MainWindow::save_new_profile_clicked() {
 	// make the new profile the currently displayed profile
 	ui->drdw_profiles->setCurrentText(profile.get_Map_Value("global", "profile_name").toUtf8().constData());
 	ui->drdw_profiles->setFocus();
+	//think of language_fallback
+	QString profile_new = (language.get_Map_Value("button", "profile_new") != "") 
+			? language.get_Map_Value("button", "profile_new") 
+			: language_fallback.get_Map_Value("button", "profile_new");
 	//reset the button-name to new
-	ui->btn_profile_new->setText(language.get_Map_Value("button", "profile_new"));
+	ui->btn_profile_new->setText(profile_new);
 	ui->btn_profile_delete->setEnabled(true);
 	ui->btn_save_quit->setEnabled(true);
 	//activate the change-Buttons
@@ -305,6 +328,8 @@ void MainWindow::save_new_profile_clicked() {
 *  TODO keep it up to date with new models
 *  takes all inputs of inpufields and check them for correctness. 
 *  write them to the Map if they are correct. 
+*
+*  make the profiles-directories (incl subdirectories) if necessary
 *
 *  then write the name of the new profile-name into the profile-map
 *  and save this profile to hard-disk
@@ -336,6 +361,10 @@ void MainWindow::check_input_and_save_new_profile() {
 		QString profilesFolder 	= setting.get_Map_Value("path", "path_profiles");
 		QString profilesEnding 	= setting.get_Map_Value("profile", "profile_ending");
 		QString profileFullName = profilesFolder + "/" + profilesNewName + profilesEnding;
+
+
+		//make profiles-folder directories if necessary
+		make_directories(profilesFolder);
 
 		//set the name of the Profile in the Map under [global] profile_name to the new name
 		profile.set_Map_Value("global", "profile_name", profilesNewName);

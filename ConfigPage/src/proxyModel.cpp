@@ -35,6 +35,7 @@
 #include "../mainwindow.h"
 #include "../inc/proxyModel.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/exec_cmd.h" //for new directories
 
 
 
@@ -105,10 +106,14 @@ FileSystemModelDialog::FileSystemModelDialog(QWidget * parent, const QString & u
 /**
  * check if the name of the new marked file already exists 
  * copy the new file 
+ * make directories id necessary
  * if picture: then send signal to update the new pic and the pic-drdw-list
  */
 void FileSystemModelDialog::accept()
 {
+	//make directories if they do not exist
+	make_directories(mPath);
+
 	const QString file = dirFilModel->fileInfo(treeView->currentIndex()).absoluteFilePath();
 	//set the name of the new pic and its path 
 	QString picName = dirFilModel->fileInfo(treeView->currentIndex()).fileName();

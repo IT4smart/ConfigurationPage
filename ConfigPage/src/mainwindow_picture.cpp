@@ -67,6 +67,22 @@ void MainWindow::set_logos()
 
 
 /**
+ *  save the client logo as default 
+ *  sets this value in the MapMap of setting and saves it to the IniFile on disk
+ */
+void MainWindow::save_client_logo_from_ui() {
+	// save last used profile as default
+	try {
+		setting.set_Map_Value("profile", "last_client_logo", ui->drdw_pictures->currentText());
+		setting.save_Map_to_IniFile();
+	} catch(const developer_error& e) {
+		handle_developer_error(e);
+	}
+}
+
+
+
+/**
  *  read in the names of all possible client_logos
  *  and sort these entries alphabetically
  *  @return list with all client_logo names
@@ -177,7 +193,7 @@ void MainWindow::pictures_delete()
 			ui->drdw_pictures->setCurrentIndex(0);
 			defPic = ui->drdw_pictures->currentText();
 			//save the now new logo as default into Map and onto disk
-			save_last_profile_and_client_logo();
+			save_client_logo_from_ui();
 		}
 		//load the pic on the gui
 		on_drdw_pictures_activated(defPic);
@@ -188,3 +204,5 @@ void MainWindow::pictures_delete()
 		return;
 	}
 }
+
+

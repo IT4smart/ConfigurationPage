@@ -67,6 +67,7 @@ Maybe this is an individual problem, because of some installed services, but con
 - profile:
 	The profile must have the format of: "profile_name"_profile.ini
 	with the name saved into the profiles profile_name
+	!!!if no profile is found, then the whole configpage is useless!!!
 
 - setting.ini
 		
@@ -145,5 +146,10 @@ Maybe this is an individual problem, because of some installed services, but con
 	  shouldn't be necessary for new logos and certificates. and the setting.ini should be set right before
 
 - Make new Folder:
-	- for all folders, that are normally not there at Start, the folders will be created if necessary
-	  e.g. profiles, log, client_logo, certificates
+	- for all folders, that are normally/possibly not there at Start, the folders will be created if necessary
+	  e.g. profiles, log, client_logo, certificates 
+	  (but no specific permissions of these folders are set, but for log this doesn't have any effect of created by root or user )
+
+- Paths: 
+	- relative to each other: in libs/tools/inc/paths.h the path to the scripts is relative to the path where the 
+	executable of ConfigPage lies.

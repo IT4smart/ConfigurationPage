@@ -127,6 +127,7 @@ public:
         rdb_network_type_dhcp = new QRadioButton(gb_network);
         rdb_network_type_dhcp->setObjectName(QStringLiteral("rdb_network_type_dhcp"));
         rdb_network_type_dhcp->setGeometry(QRect(450, 10, 75, 22));
+        rdb_network_type_dhcp->setChecked(true);
         rdb_network_type_static = new QRadioButton(gb_network);
         rdb_network_type_static->setObjectName(QStringLiteral("rdb_network_type_static"));
         rdb_network_type_static->setGeometry(QRect(540, 10, 75, 22));
@@ -239,6 +240,7 @@ public:
         rdb_citrix_rdp_type_rdp = new QRadioButton(centralWidget);
         rdb_citrix_rdp_type_rdp->setObjectName(QStringLiteral("rdb_citrix_rdp_type_rdp"));
         rdb_citrix_rdp_type_rdp->setGeometry(QRect(640, 460, 100, 20));
+        rdb_citrix_rdp_type_rdp->setChecked(true);
         gb_logo_certificate = new QGroupBox(centralWidget);
         gb_logo_certificate->setObjectName(QStringLiteral("gb_logo_certificate"));
         gb_logo_certificate->setGeometry(QRect(20, 620, 831, 81));

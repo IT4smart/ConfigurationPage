@@ -40,9 +40,6 @@ namespace Ui {
 	class MainWindow;
 }
 
-//TODO export in another tool file
-bool check_for_empty_or_whitespace(QString input);
-
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -57,10 +54,6 @@ class MainWindow : public QMainWindow
 		MainWindow* operator=(const MainWindow&) = delete;
 
 
-		//both profile & client_logo/picture
-		void save_last_profile_and_client_logo();
-		
-
 		//mainwindow_handle_custom_exceptions.cpp
 		//error handling
 		void handle_developer_error(const std::exception& e);
@@ -72,6 +65,7 @@ class MainWindow : public QMainWindow
 
 		//mainwindow_picture.cpp
 		void set_logos();
+		void save_client_logo_from_ui();
 		QStringList readInPictures();
 		void setDrDwPicturesList(QStringList list);
 		void drdw_pictures_select(const QString &logo);
@@ -81,6 +75,7 @@ class MainWindow : public QMainWindow
 		//mainwindow_profile.cpp
 		//profile
 		void reload_profile();
+		void save_last_profile_from_ui();
 		void printProfile();
 		void delProfile();
 		void new_profile_clicked();
@@ -102,24 +97,25 @@ class MainWindow : public QMainWindow
 		bool check_network_input();
 		bool check_wlan_input();
 		bool renew_nm();
-		void activate_network_wlan(		bool input);
-		void activate_wlan(			bool input);
-		void activate_network(			bool input);
+		void activate_inputfields_network_wlan(	bool input);
+		void activate_inputfields_wlan(		bool input);
+		void activate_inputfields_network(	bool input);
 		void activate_btn_network_wlan(		bool input);
 
 
 		//mainwindow_citrix_rdp.cpp
 		void activate_btn_citrix_rdp(		bool input);
-		void activate_citrix(			bool input);
-		void activate_rdp(			bool input);
+		void activate_inputfields_citrix(	bool input);
+		void activate_inputfields_rdp(		bool input);
 		bool check_citrix_rdp_input();
 
 		//language
 
+		void init_language();
+		void setDrDwLanguagesList(		QStringList List_of_Languages);
 		void change_language_GUI();
 		void set_current_language_to_default();
-		void activate_btn_language(bool input);
-
+		void activate_btn_language(		bool input);
 
 
 

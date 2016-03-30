@@ -69,7 +69,7 @@ void MainWindow::check_wlan() {
 		}
 		*/
 		//handle_developer_error(e, false);
-		activate_wlan(false);
+		activate_inputfields_wlan(false);
 		ui->chk_wlan_active	->setEnabled(false); //important for save&quit button
 		ui->btn_change_wlan 	->setEnabled(false);
 	}
@@ -200,10 +200,10 @@ bool MainWindow::renew_nm() {
 *  enable/disable all the input-Lines
 *  @param input true or false
 */
-void MainWindow::activate_network_wlan(bool input) {
+void MainWindow::activate_inputfields_network_wlan(bool input) {
 
-	activate_network(input);
-	activate_wlan(input);
+	activate_inputfields_network(input);
+	activate_inputfields_wlan(input);
 	// check if there is an useable wlan
 	check_wlan();
 }
@@ -214,7 +214,7 @@ void MainWindow::activate_network_wlan(bool input) {
  *  de/activation of the network input-fields
  *  @param input true=activate, false=deactivate
  */
-void MainWindow::activate_network(bool input)
+void MainWindow::activate_inputfields_network(bool input)
 {
 	ui->txb_network_ip		->setEnabled(input);
 	ui->txb_network_netmask		->setEnabled(input);
@@ -228,7 +228,7 @@ void MainWindow::activate_network(bool input)
  *  de/activation of the WLan
  *  @param input true=activate, false=deactivate
  */
-void MainWindow::activate_wlan(bool input)
+void MainWindow::activate_inputfields_wlan(bool input)
 {
 	ui->chk_wlan_active	->setChecked(input);
 	ui->txb_wlan_ssid 	->setEnabled(input);

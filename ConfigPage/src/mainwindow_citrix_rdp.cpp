@@ -35,8 +35,8 @@
 #include <regex>
 #include "../mainwindow.h"
 #include "../ui_mainwindow.h"
-//#include "../inc/errorMsg.h"
 #include "../../../libs/tools/inc/custom_exceptions.h"
+#include "../../../libs/tools/inc/nm_check_functions.h"		//for check_for_empty_or_whitespace()
 
 
 
@@ -55,7 +55,7 @@ void MainWindow::activate_btn_citrix_rdp(bool input)
  *  de/activation of the citrix-input
  *  @param input true=activate, false=deactivate
  */
-void MainWindow::activate_citrix(bool input)
+void MainWindow::activate_inputfields_citrix(bool input)
 {
 	ui->txb_citrix_rdp_citrix_store	->setEnabled(input);
 	ui->txb_citrix_rdp_citrix_url 	->setEnabled(input);
@@ -65,24 +65,13 @@ void MainWindow::activate_citrix(bool input)
  *  de/activation of the rdp-input
  *  @param input true=activate, false=deactivate
  */
-void MainWindow::activate_rdp(bool input)
+void MainWindow::activate_inputfields_rdp(bool input)
 {
 	ui->txb_citrix_rdp_rdp_server 	->setEnabled(input);
 	ui->txb_citrix_rdp_rdp_domain 	->setEnabled(input);
 }
 
-/**
- *  check if the input is not empty or a whitespace 
- *  @param input the QString to be tested
- *  @return true if a whitespace is found, or the string is empty, else: false
- */
-bool check_for_empty_or_whitespace(QString input)
-{
-	std::regex pat {R"(^\s+$)"};	
-	if (input == "" || std::regex_match(input.toStdString(), pat)) 
-		return true;
-	return false;
-}
+
 
 
 /**
