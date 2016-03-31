@@ -61,6 +61,7 @@ class MainWindow : public QMainWindow
 		void handle_customer_error(const std::exception& e);
 		void handle_customer_info(const std::exception& e);
 		void print_customer_info(QString message);
+		QString analyse_and_create_error_message(QString group, const std::exception& e);
 
 
 		//mainwindow_picture.cpp
@@ -116,7 +117,7 @@ class MainWindow : public QMainWindow
 		void change_language_GUI();
 		void set_current_language_to_default();
 		void activate_btn_language(		bool input);
-
+		QString language_than_fallback(QString group, QString key);
 
 
 
@@ -162,7 +163,14 @@ private:
 		IniFile profile;
 		IniFile language;
 		IniFile language_fallback;
+		IniFile language_extern;
+		IniFile language_extern_fallback;
+		ControlMapMap exception;
+		ControlMapMap exception_fallback;
 
 };
+
+Map error_message_parser(QString message);
+
 
 #endif // MAINWINDOW_H

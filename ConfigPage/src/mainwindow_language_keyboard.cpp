@@ -18,15 +18,32 @@
 void MainWindow::init_language() 
 {
 	//set language
-	QString language_name = setting.get_Map_Value("language&keyboard", "language");
-	QString language_fallback_name = setting.get_Map_Value("language&keyboard", "language_fallback");
-	QString language_ending = setting.get_Map_Value("language&keyboard", "language_ending");
-	QString language_folder = setting.get_Map_Value("path", "path_languages_system");
+	QString language_name 		= setting.get_Map_Value("language&keyboard", "language");
+	QString language_fallback_name 	= setting.get_Map_Value("language&keyboard", "language_fallback");
+	QString language_ending 	= setting.get_Map_Value("language&keyboard", "language_ending");
+	QString language_folder 	= setting.get_Map_Value("path", "path_languages_system");
+	QString language_extern_folder 	= setting.get_Map_Value("path", "path_languages_extern");
+	//the fallback-languages need to exist, because it should be english, this is essential
 	try {
-		language 		= IniFile(language_folder, language_name, 		language_ending);
-		language_fallback 	= IniFile(language_folder, language_fallback_name, 	language_ending);
+		language_fallback 	= IniFile(language_folder, 	  language_fallback_name, 	language_ending);
+		language_extern_fallback= IniFile(language_extern_folder, language_fallback_name, 	language_ending);
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
+	}
+	//if the saved language doesn't exist (e.g. wrong name in setting.ini)  
+	try {
+		language 		= IniFile(language_folder, 	  language_name, 		language_ending);
+	} catch(const developer_error& e) {
+		handle_developer_error(e, false); //false for silent, that the user gets no message
+		language 		= language_fallback;
+	}
+
+	//if the language may exist for the normal gui but not for the extern saved language (e.g. in tools)
+	try {
+		language_extern		= IniFile(language_extern_folder, language_name, 		language_ending);
+	} catch(const developer_error& e) {
+		handle_developer_error(e, false); //false for silent, that the user gets no message
+		language_extern		= language_extern_fallback;
 	}
 
 	setDrDwLanguagesList(language.get_List_of_IniFiles());
@@ -70,6 +87,18 @@ void MainWindow::set_current_language_to_default() {
 }
 
 /**
+ * ask for the value in the language. if the response is empty, the value of the language_fallback is taken
+ * @param group the group name of the language-ini-file
+ * @param key the key of the language-ini-file
+ * @return the value saved under group-value combination
+ */
+QString MainWindow::language_than_fallback(QString group, QString key) {
+	return (language.get_Map_Value(group, key) != "") 
+			? language.get_Map_Value(group, key) 
+			: language_fallback.get_Map_Value(group, key);
+}
+
+/**
  * Take the values in the IniFile language
  * and try to set all values that are shown on the GUI
  * if a value in language is emtpy ("") then use the value saved in the language_fallback
@@ -77,148 +106,49 @@ void MainWindow::set_current_language_to_default() {
  */
 void MainWindow::change_language_GUI() {
 	QString lb = "label";
-	QString btn = "button";
+	QString bt = "button";
 	
 	//title
-	setWindowTitle(
-			(language.get_Map_Value(lb, "title") != "") 
-			? language.get_Map_Value(lb, "title") 
-			: language_fallback.get_Map_Value(lb, "title"));
+	setWindowTitle( 			language_than_fallback(lb, "title"));
 	//language_keyboard
-	ui->lb_drdw_languages->setText(
-			(language.get_Map_Value(lb, "language") != "") 
-			? language.get_Map_Value(lb, "language") 
-			: language_fallback.get_Map_Value(lb, "language"));
+	ui->lb_drdw_languages->setText( 	language_than_fallback(lb, "language") + ":");
 	//profile
-	ui->lb_drdw_profiles->setText(
-			(language.get_Map_Value(lb, "profile") != "") 
-			? language.get_Map_Value(lb, "profile") 
-			: language_fallback.get_Map_Value(lb, "profile"));	
-	ui->btn_profile_new->setText(
-			(language.get_Map_Value(btn, "profile_new") != "") 
-			? language.get_Map_Value(btn, "profile_new") 
-			: language_fallback.get_Map_Value(btn, "profile_new"));	
-	ui->btn_profile_delete->setText(
-			(language.get_Map_Value(btn, "profile_delete") != "") 
-			? language.get_Map_Value(btn, "profile_delete") 
-			: language_fallback.get_Map_Value(btn, "profile_delete"));	
+	ui->lb_drdw_profiles->setText( 		language_than_fallback(lb, "profile") + ":");
+	ui->btn_profile_new->setText( 		language_than_fallback(bt, "profile_new"));
+	ui->btn_profile_delete->setText( 	language_than_fallback(bt, "profile_delete"));
 	//network
-	ui->btn_change_network->setText(
-			(language.get_Map_Value(btn, "network") != "") 
-			? language.get_Map_Value(btn, "network") 
-			: language_fallback.get_Map_Value(btn, "network"));
-	ui->gb_network->setTitle(
-			(language.get_Map_Value(lb, "frame_network") != "") 
-			? language.get_Map_Value(lb, "frame_network") 
-			: language_fallback.get_Map_Value(lb, "frame_network"));
-	ui->rdb_network_type_dhcp->setText(
-			(language.get_Map_Value(lb, "network_dhcp") != "") 
-			? language.get_Map_Value(lb, "network_dhcp") 
-			: language_fallback.get_Map_Value(lb, "network_dhcp"));
-	ui->rdb_network_type_static->setText(
-			(language.get_Map_Value(lb, "network_static") != "") 
-			? language.get_Map_Value(lb, "network_static") 
-			: language_fallback.get_Map_Value(lb, "network_static"));
-	ui->lb_network_ip->setText(
-			(language.get_Map_Value(lb, "network_ip") != "") 
-			? language.get_Map_Value(lb, "network_ip") 
-			: language_fallback.get_Map_Value(lb, "network_ip"));
-	ui->lb_network_gateway->setText(
-			(language.get_Map_Value(lb, "network_gateway") != "") 
-			? language.get_Map_Value(lb, "network_gateway") 
-			: language_fallback.get_Map_Value(lb, "network_gateway"));
-	ui->lb_network_netmask->setText(
-			(language.get_Map_Value(lb, "network_netmask") != "") 
-			? language.get_Map_Value(lb, "network_netmask") 
-			: language_fallback.get_Map_Value(lb, "network_netmask"));
-	ui->lb_network_dns->setText(
-			(language.get_Map_Value(lb, "network_dns") != "") 
-			? language.get_Map_Value(lb, "network_dns") 
-			: language_fallback.get_Map_Value(lb, "network_dns"));
+	ui->btn_change_network->setText( 	language_than_fallback(bt, "network"));
+	ui->gb_network->setTitle( 		language_than_fallback(lb, "frame_network"));
+	ui->rdb_network_type_dhcp->setText( 	language_than_fallback(lb, "network_dhcp"));
+	ui->rdb_network_type_static->setText( 	language_than_fallback(lb, "network_static"));
+	ui->lb_network_ip->setText( 		language_than_fallback(lb, "network_ip") + ":");
+	ui->lb_network_gateway->setText( 	language_than_fallback(lb, "network_gateway") + ":");
+	ui->lb_network_netmask->setText( 	language_than_fallback(lb, "network_netmask") + ":");
+	ui->lb_network_dns->setText( 		language_than_fallback(lb, "network_dns") + ":");
 	//wlan
-	ui->btn_change_wlan->setText(
-			(language.get_Map_Value(btn, "wlan") != "") 
-			? language.get_Map_Value(btn, "wlan") 
-			: language_fallback.get_Map_Value(btn, "wlan"));
-	ui->gb_wlan->setTitle(
-			(language.get_Map_Value(lb, "frame_wlan") != "") 
-			? language.get_Map_Value(lb, "frame_wlan") 
-			: language_fallback.get_Map_Value(lb, "frame_wlan"));
-	ui->lb_wlan_ssid->setText(
-			(language.get_Map_Value(lb, "wlan_ssid") != "") 
-			? language.get_Map_Value(lb, "wlan_ssid") 
-			: language_fallback.get_Map_Value(lb, "wlan_ssid"));
-	ui->chk_wlan_active->setText(
-			(language.get_Map_Value(lb, "wlan_active") != "") 
-			? language.get_Map_Value(lb, "wlan_active") 
-			: language_fallback.get_Map_Value(lb, "wlan_active"));
-	ui->lb_wlan_passwd->setText(
-			(language.get_Map_Value(lb, "wlan_password") != "") 
-			? language.get_Map_Value(lb, "wlan_password") 
-			: language_fallback.get_Map_Value(lb, "wlan_password"));
+	ui->btn_change_wlan->setText( 		language_than_fallback(bt, "wlan"));
+	ui->gb_wlan->setTitle( 			language_than_fallback(lb, "frame_wlan"));
+	ui->lb_wlan_ssid->setText( 		language_than_fallback(lb, "wlan_ssid") + ":");
+	ui->chk_wlan_active->setText( 		language_than_fallback(lb, "wlan_active") + " ?");
+	ui->lb_wlan_passwd->setText( 		language_than_fallback(lb, "wlan_password") + ":");
 	//citrix_rdp
-	ui->btn_change_citrix_rdp->setText(
-			(language.get_Map_Value(btn, "citrix_rdp") != "") 
-			? language.get_Map_Value(btn, "citrix_rdp") 
-			: language_fallback.get_Map_Value(btn, "citrix_rdp"));
-	ui->gb_citrix_rdp->setTitle(
-			(language.get_Map_Value(lb, "frame_citrix_rdp") != "") 
-			? language.get_Map_Value(lb, "frame_citrix_rdp") 
-			: language_fallback.get_Map_Value(lb, "frame_citrix_rdp"));
-	ui->rdb_citrix_rdp_type_citrix->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_citrix") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_citrix") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix"));
-	ui->rdb_citrix_rdp_type_rdp->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_rdp") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_rdp") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp"));
-	ui->lb_citrix_rdp_citrix_store->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_citrix_store") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_citrix_store") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix_store"));
-	ui->lb_citrix_rdp_citrix_url->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_citrix_url") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_citrix_url") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_citrix_url"));
-	ui->lb_citrix_rdp_rdp_server->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_rdp_server") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_rdp_server") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp_server"));
-	ui->lb_citrix_rdp_rdp_domain->setText(
-			(language.get_Map_Value(lb, "citrix_rdp_rdp_domain") != "") 
-			? language.get_Map_Value(lb, "citrix_rdp_rdp_domain") 
-			: language_fallback.get_Map_Value(lb, "citrix_rdp_rdp_domain"));
+	ui->btn_change_citrix_rdp->setText( 	language_than_fallback(bt, "citrix_rdp"));
+	ui->gb_citrix_rdp->setTitle( 		language_than_fallback(lb, "frame_citrix_rdp"));
+	ui->rdb_citrix_rdp_type_citrix->setText(language_than_fallback(lb, "citrix_rdp_citrix"));
+	ui->rdb_citrix_rdp_type_rdp->setText( 	language_than_fallback(lb, "citrix_rdp_rdp"));
+	ui->lb_citrix_rdp_citrix_store->setText(language_than_fallback(lb, "citrix_rdp_citrix_store") + ":");
+	ui->lb_citrix_rdp_citrix_url->setText( 	language_than_fallback(lb, "citrix_rdp_citrix_url") + ":");
+	ui->lb_citrix_rdp_rdp_server->setText( 	language_than_fallback(lb, "citrix_rdp_rdp_server") + ":");
+	ui->lb_citrix_rdp_rdp_domain->setText( 	language_than_fallback(lb, "citrix_rdp_rdp_domain") + ":");
 	//logo_certificate
-	ui->btn_pictures_delete->setText(
-			(language.get_Map_Value(btn, "logo_delete") != "") 
-			? language.get_Map_Value(btn, "logo_delete") 
-			: language_fallback.get_Map_Value(btn, "logo_delete"));
-	ui->gb_logo_certificate->setTitle(
-			(language.get_Map_Value(lb, "frame_logo_certificate") != "") 
-			? language.get_Map_Value(lb, "frame_logo_certificate") 
-			: language_fallback.get_Map_Value(lb, "frame_logo_certificate"));
-	ui->btn_pictures_upload->setText(
-			(language.get_Map_Value(btn, "logo_upload") != "") 
-			? language.get_Map_Value(btn, "logo_upload") 
-			: language_fallback.get_Map_Value(btn, "logo_upload"));
-	ui->btn_certificates_upload->setText(
-			(language.get_Map_Value(btn, "certificate_upload") != "") 
-			? language.get_Map_Value(btn, "certificate_upload") 
-			: language_fallback.get_Map_Value(btn, "certificate_upload"));
-	ui->lb_logo_configure->setText(
-			(language.get_Map_Value(lb, "logo_configure") != "") 
-			? language.get_Map_Value(lb, "logo_configure") 
-			: language_fallback.get_Map_Value(lb, "logo_configure"));
+	ui->btn_pictures_delete->setText( 	language_than_fallback(bt, "logo_delete"));
+	ui->gb_logo_certificate->setTitle( 	language_than_fallback(lb, "frame_logo_certififate"));
+	ui->btn_pictures_upload->setText( 	language_than_fallback(bt, "logo_upload"));
+	ui->btn_certificates_upload->setText( 	language_than_fallback(bt, "certificate_upload"));
+	ui->lb_logo_configure->setText( 	language_than_fallback(lb, "logo_configure") + ":");
 	//cancel & save_quit
-	ui->btn_cancel->setText(
-			(language.get_Map_Value(btn, "cancel") != "") 
-			? language.get_Map_Value(btn, "cancel") 
-			: language_fallback.get_Map_Value(btn, "cancel"));
-	ui->btn_save_quit->setText(
-			(language.get_Map_Value(btn, "quit_and_save") != "") 
-			? language.get_Map_Value(btn, "quit_and_save") 
-			: language_fallback.get_Map_Value(btn, "quit_and_save"));
+	ui->btn_cancel->setText( 		language_than_fallback(bt, "cancel"));
+	ui->btn_save_quit->setText( 		language_than_fallback(bt, "quit_and_save"));
 }
 
 

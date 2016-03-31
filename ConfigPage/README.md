@@ -28,6 +28,8 @@
 - TODO: actually with nm-applet the ehternet must be selected, after adding a new ethernet-possibility. 
 Maybe this is an individual problem, because of some installed services, but controll this
 
+- Execute: 
+	Important: needs to be executed in its own folder. otherwise the relative paths don't work
 
 - Compile:
 
@@ -153,3 +155,8 @@ Maybe this is an individual problem, because of some installed services, but con
 - Paths: 
 	- relative to each other: in libs/tools/inc/paths.h the path to the scripts is relative to the path where the 
 	executable of ConfigPage lies.
+
+- Language: 
+	- click on a new language, then this one will be default in setting.ini
+
+	- don't change fallback_lanuage from en to something else unless really all entries are included there

@@ -59,7 +59,7 @@
  *
  * TODO exceptions mit sprachen
  *
- * TODO certificates hochladen mit funktion ausstatten
+ * TODO certificates upload with building certificates
  *
  */
 
@@ -74,7 +74,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	setting{}, 
 	profile{},
 	language{},
-	language_fallback{}
+	language_fallback{},
+	language_extern{},
+	language_extern_fallback{},
+	exception{},
+	exception_fallback{}
 {
 	ui->setupUi(this);
 
@@ -101,7 +105,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	//read in all languages and set the right one on screen, incl fallback
 	init_language();
+////////////////
+	//initialize the exception-MapMap from the language, same for _fallback
+	exception 		= ControlMapMap(language.get_Map());
+	exception_fallback 	= ControlMapMap(language_fallback.get_Map());
+	//extend the exception-MapMap with the entries of the extern language IniFile, same for _fallback
+	exception 		+= language_extern.get_Map();
+	exception_fallback 	+= language_extern_fallback.get_Map();
 
+////////////////
 	// load last profile
 	reload_profile();
 
@@ -454,7 +466,7 @@ void MainWindow::on_btn_certificates_upload_clicked()
  ******************************************************************************/
 
 /**
- *  TODO intended? save the current language as default language in the setting.ini
+ *  save the current language as default language in the setting.ini if clicked on a new language
  *
  *  on each change of the dropdown menu languages
  *  load & print the current language
@@ -468,8 +480,9 @@ void MainWindow::on_drdw_languages_activated(const QString &language_Name)
 	} catch(const developer_error& e) {
 		handle_developer_error(e);
 	}
-	//uses the values saved in the current language and the language_fallback
-	change_language_GUI();
-	//TODO is this intented to be done?
+	//save the new language as default; afterwards the init_language can be used. 
 	set_current_language_to_default();
+	//catches the case where the language is not available as exception, and so the fallback is used. 
+	//uses the values saved in the current language and the language_fallback
+	init_language();
 }
