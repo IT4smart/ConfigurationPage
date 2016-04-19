@@ -62,6 +62,7 @@ class MainWindow : public QMainWindow
 		void handle_customer_info(const std::exception& e);
 		void print_customer_info(QString message);
 		QString analyse_and_create_error_message(QString group, const std::exception& e);
+		QString analyse_and_create_error_message(QString group, QString exception_msg);
 
 
 		//mainwindow_picture.cpp
@@ -111,7 +112,6 @@ class MainWindow : public QMainWindow
 		bool check_citrix_rdp_input();
 
 		//language
-
 		void init_language();
 		void setDrDwLanguagesList(		QStringList List_of_Languages);
 		void change_language_GUI();
@@ -155,6 +155,8 @@ class MainWindow : public QMainWindow
 
 		//language & keyboard
 		void on_drdw_languages_activated(const QString &language_Name);
+		void slot_handle_customer_info(const QString& error_msg);
+signals:
 
 private:
 		// caused by the change of the user and not only by manually indexChange

@@ -30,7 +30,8 @@
   |******************************************************************************|
   \******************************************************************************/
 
-//#include <iostream>
+#include <iostream>
+#include <QPushButton> 		//for changing the Cancel Text
 //#include "../inc/custom_exceptions.h"
 #include "../mainwindow.h"
 #include "../inc/proxyModel.h"
@@ -46,11 +47,16 @@
  * @param usb_path the path where the new files shall lie
  * @param out_path the path where the new files shall be saved
  * @param isCertificate if we have a certificate
+ * @param _language the first language for Cancel and so on
+ * @param _language_fallback the fallback language, if entries don't exist in language
  * @param cb the combobox drdw_pictures
  * @param lb label of the left picture
  */
 FileSystemModelDialog::FileSystemModelDialog(QWidget * parent, const QString & usb_path,
-		const QString & out_path, bool isCertificate, QComboBox *cb, QLabel *lb):
+		const QString & out_path, bool isCertificate, 
+		const IniFile& _language, const IniFile& _language_fallback,
+		QComboBox *cb, QLabel *lb
+):
 	QDialog(parent),
 	mPath(out_path),
 	isCertificates(isCertificate),
@@ -58,8 +64,12 @@ FileSystemModelDialog::FileSystemModelDialog(QWidget * parent, const QString & u
 	treeView(new QTreeView()),
 	buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
 	pcb(cb),
-	plb(lb)
+	plb(lb),
+	language(_language),
+	language_fallback(_language_fallback)
 {
+	//Set the language for the cancel button
+	buttonBox->button(QDialogButtonBox::Cancel)->setText(language_than_fallback("button", "cancel"));
 
 	//do not list the special entries . and .. 
 	//NoSymLinks is very important, otherwise they could get root access
@@ -94,12 +104,24 @@ FileSystemModelDialog::FileSystemModelDialog(QWidget * parent, const QString & u
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
+
 	//view the new Dialog
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(treeView);
 	mainLayout->addWidget(buttonBox);
 	setLayout(mainLayout);
-	setWindowTitle(tr("Choose a file"));
+	setWindowTitle(language_than_fallback("label", "choose_file"));
+}
+/**
+ * ask for the value in the language. if the response is empty, the value of the language_fallback is taken
+ * @param group the group name of the language-ini-file
+ * @param key the key of the language-ini-file
+ * @return the value saved under group-value combination
+ */
+QString FileSystemModelDialog::language_than_fallback(QString group, QString key) {
+	return (language.get_Map_Value(group, key) != "") 
+			? language.get_Map_Value(group, key) 
+			: language_fallback.get_Map_Value(group, key);
 }
 
 
@@ -125,24 +147,27 @@ void FileSystemModelDialog::accept()
 	if (out_f.exists()) {
 		QString err =
 			(isCertificates) ?
-			"Certificate with the same name already exits.\n"
-			"Would you like to overwrite it?" :
-			"Picture with the same name already exits.\n"
-			"Would you like to overwrite it ?";
-		QMessageBox::StandardButton reply = questionMessage(this, err);
+			language_than_fallback("customer_info", "question_override_certificate") :
+			language_than_fallback("customer_info", "question_override_picture");
+
+		//get the app name and yes and no in the right language for the user-question-dialog
+		QString app_name = language_than_fallback("label", "title");
+		QString yes = language_than_fallback("button", "yes");
+		QString no = language_than_fallback("button", "no");
+		int reply = questionMessage(this, err, app_name, yes, no);
 		//don't override the existing file
 		if (reply == QMessageBox::No) {
-			informationMessage(this, "Existing file not changed. Nothing done");
+			emit send_customer_info("file_remained");
 			mDlFile=QString::null;
 			return;
 		}
 		// delete existing file
 		QFile file;
 		if (!file.remove(mDlFile)) {
-			informationMessage(this, "Could not remove existing file." + file.errorString());
+			emit send_customer_info("file_remove_failed; ERRORMSG=" + file.errorString() + ";");
 			return;
 		}
-		informationMessage(this, "Existing file will be overwritten.");
+		emit send_customer_info("override_file");
 	}
 	//copy new file
 	QFile::copy(file, mDlFile);

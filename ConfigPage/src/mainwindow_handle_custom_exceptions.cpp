@@ -99,18 +99,30 @@ void MainWindow::handle_customer_error(const std::exception& e)
  */
 void MainWindow::handle_customer_info(const std::exception& e)
 {
-	//take the message of exception in the customer_info section 
-	//if not available, take the fallback
-	QString message = (exception.get_Map_Value("customer_info", e.what()) != "") ? 
-			exception.get_Map_Value("customer_info", e.what()) : 
-			exception_fallback.get_Map_Value("customer_info", e.what());
+	//get the right error-message and replace some Identifiers like FILE with the 
+	//values given in the exception-message
+	QString message = analyse_and_create_error_message("customer_info", e);
 	//if fallback is empty too, print the error-code
 	if (message != "")
 		print_customer_info(message);
 	else
 		print_customer_info(e.what());
 }
-
+/**
+ *  give information to user/customer
+ *  @param e the customer_info
+ */
+void MainWindow::slot_handle_customer_info(const QString& error_msg)
+{
+	//get the right error-message and replace some Identifiers like FILE with the 
+	//values given in the exception-message
+	QString message = analyse_and_create_error_message("customer_info", error_msg);
+	//if fallback is empty too, print the error-code
+	if (message != "")
+		print_customer_info(message);
+	else
+		print_customer_info(error_msg);
+}
 /**
  *  needed for non-exception information
  *  give information to user/customer
@@ -118,7 +130,8 @@ void MainWindow::handle_customer_info(const std::exception& e)
  */
 void MainWindow::print_customer_info(QString message)
 {
-	informationMessage (this, message);
+	QString app_name = language_than_fallback("label", "title");
+	informationMessage (this, message, app_name);
 }
 
 
@@ -206,9 +219,10 @@ Map error_message_parser(QString message) {
  * @param group the group in which it looks for the error-messsage-identifier 
  * @return the right error-message in the right language
  */
-QString MainWindow::analyse_and_create_error_message(QString group, const std::exception& e) {
+QString MainWindow::analyse_and_create_error_message(QString group, QString exception_msg) {
+
 	//get Map of the error-message with identifiers
-	Map map = error_message_parser(e.what());
+	Map map = error_message_parser(exception_msg);
 	//get the therefore fitting message from an *.ini-file, use the fallback, if the original language doesn't have this entry
 	QString message = (exception.get_Map_Value(group, map.value("ERRORCODE")) != "") ? 
 			exception.get_Map_Value(group, map.value("ERRORCODE")) : 
@@ -258,5 +272,19 @@ QString MainWindow::analyse_and_create_error_message(QString group, const std::e
 	return message;
 }
 
+/**
+ * overloaded function of analyse_and_create_error_message(QString group, QString exception_msg)
+ * for more information, see there
+ *
+ * Analyses the given exception-message and replaces the given identifiers in the message of an *.ini file to get the right 
+ * error-message in the right language
+ *
+ * @param e the whole exception
+ * @param group the group in which it looks for the error-messsage-identifier 
+ * @return the right error-message in the right language
+ */
+QString MainWindow::analyse_and_create_error_message(QString group, const std::exception& e) {
+	return analyse_and_create_error_message(group, e.what());
+}
 
 

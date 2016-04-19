@@ -14,6 +14,7 @@
  * read in the default language and the fallback language
  * set the dropdown list to all available languages
  * show the content of the default language on the screen
+ * take the right language for the exception-handling
  */
 void MainWindow::init_language() 
 {
@@ -49,6 +50,17 @@ void MainWindow::init_language()
 	setDrDwLanguagesList(language.get_List_of_IniFiles());
 
 	change_language_GUI();
+
+
+
+
+	//set the language of the exceptions right
+	//initialize the exception-MapMap from the language, same for _fallback
+	exception 		= ControlMapMap(language.get_Map());
+	exception_fallback 	= ControlMapMap(language_fallback.get_Map());
+	//extend the exception-MapMap with the entries of the extern language IniFile, same for _fallback
+	exception 		+= language_extern.get_Map();
+	exception_fallback 	+= language_extern_fallback.get_Map();
 }
 
 

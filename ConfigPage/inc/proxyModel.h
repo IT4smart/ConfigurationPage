@@ -42,6 +42,7 @@
 #include <QTreeView>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
+#include "../../../libs/tools/inc/IniFile.h"
 
 class FileSystemModelDialog : public QDialog
 {
@@ -54,9 +55,13 @@ class FileSystemModelDialog : public QDialog
 		FileSystemModelDialog* operator=(const FileSystemModelDialog&) = delete;
 		FileSystemModelDialog(QWidget *parent = 0,const QString& usb_path = QString::null,
 				const QString& out_path = QString::null,
-				bool isCertificate = true,QComboBox *cb = NULL,QLabel *lb = NULL);
+				bool isCertificate = true, 
+				const IniFile& _language = IniFile(), const IniFile& _language_fallback = IniFile(),
+				QComboBox *cb = NULL, QLabel *lb = NULL
+				);
 		~FileSystemModelDialog();
 
+		QString language_than_fallback(QString group, QString key);
 	private:
 		QString mPath;
 		bool isCertificates;
@@ -64,7 +69,9 @@ class FileSystemModelDialog : public QDialog
 		QTreeView *treeView;
 		QDialogButtonBox *buttonBox;
 		QComboBox * pcb;
-		QLabel *plb;
+		QLabel *plb;	
+		IniFile language;
+		IniFile language_fallback;
 
 	private slots:
 		void accept();
@@ -73,6 +80,7 @@ class FileSystemModelDialog : public QDialog
 
 	signals:
 		void signalPictureAdd(const QString &logo);
+		void send_customer_info(const QString& error_msg);
 };
 
 #endif // FileSystemModelDialog_H

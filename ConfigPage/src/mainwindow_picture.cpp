@@ -155,7 +155,9 @@ void MainWindow::pictures_delete()
 
 	// last remaining profile
 	if ( !(ui->drdw_pictures->count() > 1) ) {
-		print_customer_info("can't delete last remaining logo");
+
+		QString error_msg = analyse_and_create_error_message("customer_error", "cant_delete_last_logo");
+		print_customer_info(error_msg);
 		return;
 	}
 
@@ -165,8 +167,12 @@ void MainWindow::pictures_delete()
 	//ask to delete picture
 	QString fullname = this->setting.get_Map_Value("path", "path_client_logo") + curPic;
 
-	QMessageBox::StandardButton reply = questionMessage (this,"Do you really want to remove"
-			" the selected logo from folder");
+	QString app_name = language_than_fallback("label", "title");
+	QString profile_remove_question = language_than_fallback("customer_info", "question_remove_logo");
+	QString yes = language_than_fallback("button", "yes");
+	QString no = language_than_fallback("button", "no");
+	int reply = questionMessage (this, profile_remove_question, app_name, yes, no);
+	//QMessageBox::StandardButton reply = questionMessage (this, profile_remove_question, app_name);
 
 	//delete: yes
 	if (reply == QMessageBox::Yes) {
@@ -177,7 +183,8 @@ void MainWindow::pictures_delete()
 			handle_developer_error(e);
 			return;
 		}
-		print_customer_info("logo successfully deleted");
+		QString error_msg = analyse_and_create_error_message("customer_info", "logo_deleted");
+		print_customer_info(error_msg);
 		ui->drdw_pictures->removeItem(ui->drdw_pictures->currentIndex());
 		ui->drdw_pictures->update();
 
@@ -200,7 +207,8 @@ void MainWindow::pictures_delete()
 
 		//delete: no
 	} else {
-		print_customer_info("no logo has been deleted!");
+		QString error_msg = analyse_and_create_error_message("customer_info", "no_logo_deleted");
+		print_customer_info(error_msg);
 		return;
 	}
 }

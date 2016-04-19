@@ -176,21 +176,28 @@ void MainWindow::delProfile()  {
 	//empty Name
 	if(ui->drdw_profiles->currentText().isEmpty()
 			|| ui->drdw_profiles->currentText().isNull()) {
-		print_customer_info("Can't delete profile. \nPlease select a profilename to delete in combobox");
+		QString error_msg = analyse_and_create_error_message("customer_error", "empty_profilename");
+		print_customer_info(error_msg);
 		return;
 	}
 
 	// last remaining profile
 	if( !(profile.get_List_of_IniFiles().size() > 1) ) {
-		print_customer_info("can't delete last remaining file");
+		QString error_msg = analyse_and_create_error_message("customer_error", "cant_delete_last_profile");
+		print_customer_info(error_msg);
 		return;
 	}
 
 	QString profileFullName = profile.get_IniFile_Folder () + "/"
 		+ drdw_current + profile.get_IniFile_ending();
 
-	QMessageBox::StandardButton reply = questionMessage (this,"Do you really want to remove"
-			"the selected profile from profiles-folder");
+	QString app_name = language_than_fallback("label", "title");
+	QString profile_remove_question = language_than_fallback("customer_info", "question_remove_profile");
+	QString yes = language_than_fallback("button", "yes");
+	QString no = language_than_fallback("button", "no");
+
+	//QMessageBox::StandardButton reply = questionMessage (this, profile_remove_question, app_name, yes, no);
+	int reply = questionMessage (this, profile_remove_question, app_name, yes, no);
 
 	//delete: yes
 	if (reply == QMessageBox::Yes) {
@@ -201,11 +208,13 @@ void MainWindow::delProfile()  {
 			handle_developer_error(e);
 			return;
 		}
-		print_customer_info("profile successfully deleted");
+		QString error_msg = analyse_and_create_error_message("customer_info", "profile_deleted");
+		print_customer_info(error_msg);
 
 	//delete: no
 	} else {
-		print_customer_info("no profile has been deleted!");
+		QString error_msg = analyse_and_create_error_message("customer_info", "no_profile_deleted");
+		print_customer_info(error_msg);
 		return;
 	}
 
@@ -255,9 +264,7 @@ void MainWindow::delProfile()  {
 * disabling the Save & Quit button, to prevent saving an invalid last_profile
 */
 void MainWindow::new_profile_clicked() {
-	QString profile_save = (language.get_Map_Value("button", "profile_save") != "") 
-			? language.get_Map_Value("button", "profile_save") 
-			: language_fallback.get_Map_Value("button", "profile_save");
+	QString profile_save = language_than_fallback("button", "profile_save");
 		ui->btn_profile_new->setText(profile_save);
 		ui->drdw_profiles->setEditable(true);
 		ui->drdw_profiles->clearEditText();
@@ -284,13 +291,15 @@ void MainWindow::new_profile_clicked() {
 void MainWindow::save_new_profile_clicked() {
 	if(ui->drdw_profiles->currentText().toUtf8().isEmpty() ||
 			ui->drdw_profiles->currentText ().toUtf8 ().isNull ()  ) {
-		print_customer_info("Can't save profile. \nPlease type a profile name in combobox");
+		QString error_msg = analyse_and_create_error_message("customer_error", "empty_profilename");
+		print_customer_info(error_msg);
 		return;
 	}
 
 	// check whether profilename already used
 	if(this->profile.get_List_of_IniFiles().contains (ui->drdw_profiles->currentText ())) {
-		print_customer_info("Can't save profile. \n Profile name already exists.");
+		QString error_msg = analyse_and_create_error_message("customer_error", "existing_profilename");
+		print_customer_info(error_msg);
 		return;
 	}
 
@@ -316,9 +325,8 @@ void MainWindow::save_new_profile_clicked() {
 	activate_btn_citrix_rdp(true);
 	activate_btn_language(true);
 
-	print_customer_info(
-			QString("Profile successfully added. \n") +
-			QString("Press the Save & Quit button to make this new profile your default profile."));
+	QString error_msg = analyse_and_create_error_message("customer_info", "new_profile_added; SAVEQUIT=BUTTON.quit_and_save;");
+	print_customer_info(error_msg);
 
 }
 

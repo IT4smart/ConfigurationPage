@@ -57,12 +57,9 @@
 
 /**
  *
- * TODO exceptions mit sprachen
- *
  * TODO certificates upload with building certificates
  *
  */
-
 
 /**
  * Constructor
@@ -103,17 +100,9 @@ MainWindow::MainWindow(QWidget *parent) :
 		handle_developer_error(e);
 	}
 
-	//read in all languages and set the right one on screen, incl fallback
+	//read in all languages and set the right one on screen, incl fallback and exceptions and exceptions extern
 	init_language();
-////////////////
-	//initialize the exception-MapMap from the language, same for _fallback
-	exception 		= ControlMapMap(language.get_Map());
-	exception_fallback 	= ControlMapMap(language_fallback.get_Map());
-	//extend the exception-MapMap with the entries of the extern language IniFile, same for _fallback
-	exception 		+= language_extern.get_Map();
-	exception_fallback 	+= language_extern_fallback.get_Map();
 
-////////////////
 	// load last profile
 	reload_profile();
 
@@ -208,8 +197,8 @@ void MainWindow::on_btn_save_quit_clicked()
 void MainWindow::on_btn_change_network_clicked()
 {
 	if (check_network_input()) {
-		//TODO print_customer_info
-		informationMessage (this,"Network changed: Save & Quit to make changes permanent.");
+		QString error_msg = analyse_and_create_error_message("customer_info", "new_network; SAVEQUIT=BUTTON.quit_and_save;NETWORK=LABEL.frame_network;");
+		print_customer_info(error_msg);
 	}
 }
 
@@ -221,8 +210,8 @@ void MainWindow::on_btn_change_network_clicked()
 void MainWindow::on_btn_change_wlan_clicked()
 {
 	if (check_wlan_input()) {
-		//TODO print_customer_info
-		informationMessage (this,"WLan changed: Save & Quit to make changes permanent.");
+		QString error_msg = analyse_and_create_error_message("customer_info", "new_wlan; SAVEQUIT=BUTTON.quit_and_save;WLANNAME=LABEL.frame_wlan;");
+		print_customer_info(error_msg);
 	}
 }
 
@@ -303,7 +292,8 @@ void MainWindow::on_rdb_citrix_rdp_type_rdp_clicked()
 void MainWindow::on_btn_change_citrix_rdp_clicked()
 {
 	if (check_citrix_rdp_input()) {
-		informationMessage (this,"Citrix & RDP changed: Save & Quit to make changes permanent.");
+		QString error_msg = analyse_and_create_error_message("customer_info", "new_citrix_rdp; SAVEQUIT=BUTTON.quit_and_save;CITRIXRDP=LABEL.frame_citrix_rdp;");
+		print_customer_info(error_msg);
 	}
 }
 
@@ -413,13 +403,17 @@ void MainWindow::on_btn_pictures_upload_clicked()
 	QString usbPath = setting.get_Map_Value("path", "path_usb");
 	QString outPath = setting.get_Map_Value("path", "path_client_logo");
 
-	FileSystemModelDialog *dialog = new FileSystemModelDialog(this, usbPath, outPath, false,
+	FileSystemModelDialog *dialog = new FileSystemModelDialog(this, usbPath, outPath, false, language, language_fallback,
 								 ui->drdw_pictures, ui->lb_picture_left);	
 	//connect the signal of a new picture accepted to update the list and then update the pic itself on the gui
 	QObject::connect(dialog, 	SIGNAL(signalPictureAdd(const QString &)), 
 			this, 		SLOT(selectNewPicture(const QString &)));
 	QObject::connect(dialog, 	SIGNAL(signalPictureAdd(const QString &)), 
 			this, 		SLOT(on_drdw_pictures_activated(const QString &)));	
+
+	//handle the user-information-box by the mainwindow
+	QObject::connect(dialog, 	SIGNAL(send_customer_info(const QString &)), 
+			this, 		SLOT(slot_handle_customer_info(const QString &)));	
 	dialog->resize(700,500);
 	dialog->show();
 }
@@ -452,7 +446,10 @@ void MainWindow::on_btn_certificates_upload_clicked()
 	QString usbPath = setting.get_Map_Value("path", "path_usb");
 	QString outPath = setting.get_Map_Value("path", "path_certificates");
 	//unique_ptr not possbile, because directly running out of scope without even having seen the dialog
-	FileSystemModelDialog* dialog = new FileSystemModelDialog(this, usbPath, outPath, true);
+	FileSystemModelDialog* dialog = new FileSystemModelDialog(this, usbPath, outPath, true, language, language_fallback);
+	//handle the user-information-box by the mainwindow
+	QObject::connect(dialog, 	SIGNAL(send_customer_info(const QString &)), 
+			this, 		SLOT(slot_handle_customer_info(const QString &)));	
 	dialog->resize (700,500);
 	dialog->show();
 }
@@ -486,3 +483,4 @@ void MainWindow::on_drdw_languages_activated(const QString &language_Name)
 	//uses the values saved in the current language and the language_fallback
 	init_language();
 }
+
