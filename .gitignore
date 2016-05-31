@@ -8,3 +8,4 @@ cmake_test
 #so that all the builds wont be stored everytime
 ConfigPage-build
 build-*
+ConfigPage/ui_*
