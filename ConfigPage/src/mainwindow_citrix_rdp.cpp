@@ -91,10 +91,15 @@ bool MainWindow::check_citrix_rdp_input() {
 		//set the type
 		if (ui->rdb_citrix_rdp_type_citrix->isChecked()) {
 			//check for empty string
-			if (check_for_empty_or_whitespace(citrix_store) || check_for_empty_or_whitespace(citrix_url))
+			if (check_for_empty_or_whitespace(citrix_store) || !check_for_empty_or_whitespace(citrix_url)) {
+				//set the citrix_rdp_type to citrix
+				profile.set_Map_Value("citrix&rdp", "citrix_rdp_type", "citrix");
+			} else if (!check_for_empty_or_whitespace(citrix_store) || check_for_empty_or_whitespace(citrix_url)) {
+				//set the citrix_rdp_type to citrix
+				profile.set_Map_Value("citrix&rdp", "citrix_rdp_type", "citrix");
+			} else {
 				throw customer_error(std::string("citrix_empty; CITRIXURL=LABEL.citrix_rdp_citrix_url; CITRIXSTOR=LABEL.citrix_rdp_citrix_store;"));
-			//set the citrix_rdp_type to citrix
-			profile.set_Map_Value("citrix&rdp", "citrix_rdp_type", "citrix");
+			}
 
 		} else if  (ui->rdb_citrix_rdp_type_rdp->isChecked()) {
 			//check for empty string
