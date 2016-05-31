@@ -147,13 +147,8 @@ QString MainWindow::getNetworkIp()
     qDebug() << "Error: " << buffer.second;
     qDebug() << "Result: " << buffer.first;
 
-    std::string str_result, str_error;
-
-    str_result = buffer.first.toStdString();
-    str_error = buffer.second.toStdString();
-
     // convert it back to QString
-    result = QString::fromStdString(str_result);
+    result = QString::fromLatin1(buffer.first);
 
     qDebug() << "Clean result: " << result;
 
@@ -180,13 +175,8 @@ QString MainWindow::getNetworkDns()
     qDebug() << "Error: " << buffer.second;
     qDebug() << "Result: " << buffer.first;
 
-    std::string str_result, str_error;
-
-    str_result = buffer.first.toStdString();
-    str_error = buffer.second.toStdString();
-
     // convert it back to QString
-    result = QString::fromStdString(str_result);
+    result = QString::fromLatin1(buffer.first);
 
     qDebug() << "Clean result: " << result;
 
@@ -213,13 +203,8 @@ QString MainWindow::getNetworkGateway()
     qDebug() << "Error: " << buffer.second;
     qDebug() << "Result: " << buffer.first;
 
-    std::string str_result, str_error;
-
-    str_result = buffer.first.toStdString();
-    str_error = buffer.second.toStdString();
-
     // convert it back to QString
-    result = QString::fromStdString(str_result);
+    result = QString::fromLatin1(buffer.first);
 
     qDebug() << "Clean result: " << result;
 
@@ -247,13 +232,8 @@ QString MainWindow::getNetworkNetmask()
     qDebug() << "Error: " << buffer.second;
     qDebug() << "Result: " << buffer.first;
 
-    std::string str_result, str_error;
-
-    str_result = buffer.first.toStdString();
-    str_error = buffer.second.toStdString();
-
     // convert it back to QString
-    result = QString::fromStdString(str_result);
+    result = QString::fromLatin1(buffer.first);
 
     qDebug() << "Clean result: " << result;
 
@@ -320,13 +300,8 @@ void MainWindow::RehashCerts()
     qDebug() << "Error: " << buffer.second;
     qDebug() << "Result: " << buffer.first;
 
-    std::string str_result, str_error;
-
-    str_result = buffer.first.toStdString();
-    str_error = buffer.second.toStdString();
-
     // convert it back to QString
-    result = QString::fromStdString(str_result);
+    result = QString::fromLatin1(buffer.first);
 
     qDebug() << "Clean result: " << result;
 }
@@ -393,6 +368,9 @@ void MainWindow::on_btn_save_quiet_clicked()
 
     // rehash certificates if there are some one
     RehashCerts();
+
+    // close application
+    QApplication::quit();
 
 
 }
