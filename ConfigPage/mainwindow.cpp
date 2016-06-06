@@ -1,135 +1,335 @@
-/*******************************************************************************
- * Copyright (c) 2016, Andreas Thomas Haller, Cedrique Tassi
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *    3. The name of the authors may not be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************/
- 
-/******************************************************************************\
-  |******************************************************************************|
-  |* 				mainwindow.cpp				      *|
-  |******************************************************************************|
-  \******************************************************************************/
-#include <QDesktopWidget>
-#include <QString>
-#include <iostream>
-#include <stdexcept>
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include <string>
-#include <memory>
-#include <algorithm>
+#include <iostream>
+#include <QSettings>
+#include <QDebug>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileSystemModel>
-#include "./inc/proxyModel.h"
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "../../libs/tools/inc/custom_exceptions.h"
-#include "../../libs/tools/inc/paths.h" 		//for path to setting.ini
-#include "../../libs/tools/inc/nm_get_functions.h" 		//for testing
 
-//TODO DOCUMENTATION LIKE THIS:
-/**
- *  read in the names of all possible profile in the profiles folder
- *  and sort these entries alphabetically
- *  @param s_profilesFolder directory of the folder in which the profiles lie in
- *  @throw developer_error why this exceptions is thrown
- *  @return Vector of Strings with all profile names in the profile Folder
- */
+// custom
+#include "exec_cmd.h"
+#include "proxymodel.h"
+
 
 /**
- *
- * TODO certificates upload with building certificates
- *
- */
-
-/**
- * Constructor
- * @param parent take its parent
+ * @brief MainWindow::MainWindow
+ * @param parent
+ * @todo add syslog support
  */
 MainWindow::MainWindow(QWidget *parent) :
-	QMainWindow(parent),
-	ui(new Ui::MainWindow),
-	setting{}, 
-	profile{},
-	language{},
-	language_fallback{},
-	language_extern{},
-	language_extern_fallback{},
-	exception{},
-	exception_fallback{}
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
-	ui->setupUi(this);
+    ui->setupUi(this);
+
+    // read setting
+    m_sSettingsFile = QApplication::applicationDirPath() + "/setting/setting.ini";
+    loadSettings();
 
 
+    // read profile
+    m_sProfilesFile = QApplication::applicationDirPath() + "/profiles/default_profile.ini";
+    loadProfiles();
 
-
-	// make the boxes look nice more info: http://doc.qt.io/qt-5/qtwidgets-widgets-stylesheet-example.html
-	this->setStyleSheet("QGroupBox { border: 1px solid gray; border-radius: 9px; margin-top: 0.5em; };"
-			"QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; };");
-
-	// set mask at screen center
-	QRect rck = this->geometry ();
-	rck.moveCenter (QApplication::desktop ()->availableGeometry().center()) ;
-	this->setGeometry (rck);
-	this->setMinimumSize (this->size ());
-	this->setMaximumSize (this->size ());
-
-	// loads global settings of setting.ini
-	try {
-		setting = IniFile(SETTING_PATH, SETTING_FILE, SETTING_ENDING);
-	} catch(const developer_error& e) {
-		handle_developer_error(e);
-	}
-
-	//read in all languages and set the right one on screen, incl fallback and exceptions and exceptions extern
-	init_language();
-
-	// load last profile
-	reload_profile();
-
-	// set profile option in setting.ini
-	setDrDwProfilesOpt();
-
-	// read in the last profile and show all information on the screen
-	// check if there is an useable wlan
-	// sets logos
-	printProfile();
-	check_wlan();
-	set_logos();
+    // connect button for save profile settings
+    connect(this->ui->btn_save_quiet, SIGNAL(clicked()), this, SLOT(on_btn_save_quiet_clicked()));
+    connect(this->ui->btn_uplod_cert, SIGNAL(clicked()), this, SLOT(on_btn_upload_cert_clicked()));
 
 }
 
 /**
- * Destructor
+ * @brief MainWindow::~MainWindow
  */
 MainWindow::~MainWindow()
 {
-	delete ui;
+    delete ui;
 }
 
 
+/**
+ * @brief MainWindow::loadSettings
+ */
+void MainWindow::loadSettings()
+{
+    QSettings settings(m_sSettingsFile, QSettings::NativeFormat);
+
+    // load all paths
+    path_certificates = settings.value("path/path_certificates").toString();
+    path_scripts = settings.value("path/path_scripts").toString();
+    path_usb = settings.value("path/path_usb").toString();
+
+    // load all scripts
+    script_get_dns = settings.value("script/get_dns").toString();
+    script_get_gateway = settings.value("script/get_gateway").toString();
+    script_get_ip_ethernet = settings.value("script/get_ip_ethernet").toString();
+    script_rehash_certs = settings.value("script/rehash_certs").toString();
+}
 
 
+/**
+ * @brief MainWindow::loadProfiles
+ */
+void MainWindow::loadProfiles()
+{
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
 
+    // check if have dhcp or a static ip
+    network_type = profiles.value("network/network_type").toString();
+    setNetworkUi(network_type);
+
+    // check if we use citrix or rdp
+    citrix_rdp_type = profiles.value("global/citrix_rdp_type").toString();
+    QString citrix_store = profiles.value("citrix/citrix_store").toString();
+    QString citrix_netscaler = profiles.value("citrix/citrix_netscaler").toString();
+    QString rdp_domain = profiles.value("rdp/rdp_domain").toString();
+    QString rdp_server = profiles.value("rdp/rdp_server").toString();
+    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, rdp_domain, rdp_server);
+
+
+}
+
+/**
+ * @brief MainWindow::setNetworkUi
+ * @param network_type
+ */
+void MainWindow::setNetworkUi(QString network_type)
+{
+    if(QString::compare(network_type, "dhcp") == 0)
+    {
+        // radio button for dhcp checked
+        this->ui->rbn_dhcp->setChecked(true);
+
+        // all other textfields for network has to be disable
+        this->ui->txt_ip->setDisabled(true);
+        this->ui->txt_dns->setDisabled(true);
+        this->ui->txt_gateway->setDisabled(true);
+        this->ui->txt_netmask->setDisabled(true);
+
+    } else {
+        this->ui->rbn_static->setChecked(true);
+    }
+
+    // get current ip
+    this->ui->txt_ip->setText(getNetworkIp());
+
+    // get current dns
+    this->ui->txt_dns->setText(getNetworkDns());
+
+    // get current gateway
+    this->ui->txt_gateway->setText(getNetworkGateway());
+
+    // get current netmask
+    this->ui->txt_netmask->setText(getNetworkNetmask());
+
+    // at the moment it is not possible to change network type
+    this->ui->rbn_dhcp->setDisabled(true);
+    this->ui->rbn_static->setDisabled(true);
+}
+
+/**
+ * @brief MainWindow::getNetworkIp
+ * @return
+ */
+QString MainWindow::getNetworkIp()
+{
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+
+    command = QApplication::applicationDirPath() + path_scripts + script_get_ip_ethernet;
+    qDebug() << "Script for IP: " << command;
+
+    exec_cmd script;
+    buffer = script.exec_process(command);
+
+    qDebug() << "Error: " << buffer.second;
+    qDebug() << "Result: " << buffer.first;
+
+    std::string str_result, str_error;
+
+    str_result = buffer.first.toStdString();
+    str_error = buffer.second.toStdString();
+
+    // convert it back to QString
+    result = QString::fromStdString(str_result);
+
+    qDebug() << "Clean result: " << result;
+
+    // return the result
+    return result;
+}
+
+/**
+ * @brief MainWindow::getNetworkDns
+ * @return
+ */
+QString MainWindow::getNetworkDns()
+{
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+
+    command = QApplication::applicationDirPath() + path_scripts + script_get_dns;
+    qDebug() << "Script for DNS: " << command;
+
+    exec_cmd script;
+    buffer = script.exec_process(command);
+
+    qDebug() << "Error: " << buffer.second;
+    qDebug() << "Result: " << buffer.first;
+
+    std::string str_result, str_error;
+
+    str_result = buffer.first.toStdString();
+    str_error = buffer.second.toStdString();
+
+    // convert it back to QString
+    result = QString::fromStdString(str_result);
+
+    qDebug() << "Clean result: " << result;
+
+    // return the result
+    return result;
+}
+
+/**
+ * @brief MainWindow::getNetworkGateway
+ * @return
+ */
+QString MainWindow::getNetworkGateway()
+{
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+
+    command = QApplication::applicationDirPath() + path_scripts + script_get_gateway;
+    qDebug() << "Script for Gateway: " << command;
+
+    exec_cmd script;
+    buffer = script.exec_process(command);
+
+    qDebug() << "Error: " << buffer.second;
+    qDebug() << "Result: " << buffer.first;
+
+    std::string str_result, str_error;
+
+    str_result = buffer.first.toStdString();
+    str_error = buffer.second.toStdString();
+
+    // convert it back to QString
+    result = QString::fromStdString(str_result);
+
+    qDebug() << "Clean result: " << result;
+
+    // return the result
+    return result;
+}
+
+/**
+ * @brief MainWindow::getNetworkNetmask
+ * @return
+ * @todo    change script to return netmask as 255.255.255.0
+ */
+QString MainWindow::getNetworkNetmask()
+{
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+
+    command = QApplication::applicationDirPath() + path_scripts + script_get_netmask;
+    qDebug() << "Script for Netmask: " << command;
+
+    exec_cmd script;
+    buffer = script.exec_process(command);
+
+    qDebug() << "Error: " << buffer.second;
+    qDebug() << "Result: " << buffer.first;
+
+    std::string str_result, str_error;
+
+    str_result = buffer.first.toStdString();
+    str_error = buffer.second.toStdString();
+
+    // convert it back to QString
+    result = QString::fromStdString(str_result);
+
+    qDebug() << "Clean result: " << result;
+
+    // return the result
+    return result;
+}
+
+/**
+ * @brief MainWindow::setVdiUi
+ * @param citrix_rdp_type
+ * @param citrix_store
+ * @param citrix_netscaler
+ * @param rdp_domain
+ * @param rdp_server
+ */
+void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString rdp_domain, QString rdp_server)
+{
+    if(QString::compare(citrix_rdp_type, "citrix") == 0)
+    {
+        // we use citrix
+        // set radio button for citrix checked
+        this->ui->rbn_citrix->setChecked(true);
+
+        // set citrix store
+        this->ui->txt_storefront->setText(citrix_store);
+
+        // set citrix netscaler
+        this->ui->txt_netscaler->setText(citrix_netscaler);
+
+    } else {
+        // we use rdp
+        // set radio button for rdp checked
+        this->ui->rbn_rdp->setChecked(true);
+
+        // set windows domain
+        this->ui->txt_rdp_domain->setText(rdp_domain);
+
+        // set rdp server
+        this->ui->txt_rdp_server->setText(rdp_server);
+    }
+
+    // but at the moment we don't use rdp
+    this->ui->rbn_citrix->setDisabled(true);
+    this->ui->rbn_rdp->setDisabled(true);
+    this->ui->txt_rdp_domain->setDisabled(true);
+    this->ui->txt_rdp_server->setDisabled(true);
+}
+
+/**
+ * @brief MainWindow::RehashCerts
+ */
+void MainWindow::RehashCerts()
+{
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+
+    command = QApplication::applicationDirPath() + path_scripts + script_rehash_certs + " " + QApplication::applicationDirPath() + path_certificates + "*";
+    qDebug() << "Rehash command: " << command;
+
+    exec_cmd script;
+    buffer = script.exec_process(command);
+
+    qDebug() << "Error: " << buffer.second;
+    qDebug() << "Result: " << buffer.first;
+
+    std::string str_result, str_error;
+
+    str_result = buffer.first.toStdString();
+    str_error = buffer.second.toStdString();
+
+    // convert it back to QString
+    result = QString::fromStdString(str_result);
+
+    qDebug() << "Clean result: " << result;
+}
 
 /******************************************************************************\
 |******************************************************************************|
@@ -137,350 +337,72 @@ MainWindow::~MainWindow()
 |******************************************************************************|
 \******************************************************************************/
 
+void MainWindow::on_btn_upload_cert_clicked()
+{
+    QSettings settings(m_sSettingsFile, QSettings::NativeFormat);
+
+    QString usb_path = settings.value("path/path_usb").toString();
+    QString cert_path = settings.value("path/path_certificates").toString();
+    cert_path = QApplication::applicationDirPath() + cert_path;
+
+    FileSystemModelDialog* dialog = new FileSystemModelDialog(this, usb_path, cert_path);
+
+    dialog->resize (700,500);
+    dialog->show();
+}
+
+
 /**
+ * @brief MainWindow::on_btn_save_quiet_clicked
+ */
+void MainWindow::on_btn_save_quiet_clicked()
+{
+    // load profiles file
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+
+    QString citrix_store, citrix_netscaler, rdp_domain, rdp_server;
+
+    // get all informationen from textboxes
+    if(this->ui->rbn_citrix->isChecked())
+    {
+        citrix_rdp_type = "citrix";
+        citrix_store = QString::fromStdString(this->ui->txt_storefront->text().toStdString());
+        citrix_netscaler = QString::fromStdString(this->ui->txt_netscaler->text().toStdString());
+    } else {
+        citrix_rdp_type = "rdp";
+        rdp_domain = QString::fromStdString(this->ui->txt_rdp_domain->text().toStdString());
+        rdp_server = QString::fromStdString(this->ui->txt_rdp_server->text().toStdString());
+    }
+
+    // we have all informationen
+    // now we can prepare to store tem
+
+    // global
+    profiles.setValue("global/citrix_rdp_type", citrix_rdp_type);
+
+    // citrix
+    profiles.setValue("citrix/citrix_store", citrix_store);
+    profiles.setValue("citrix/citrix_netscaler", citrix_netscaler);
+
+    // rdp
+    profiles.setValue("rdp/rdp_domain", rdp_domain);
+    profiles.setValue("rdp/rdp_server", rdp_server);
+
+    // save it
+    profiles.sync();
+
+    // rehash certificates if there are some one
+    RehashCerts();
+
+
+}
+
+/**
+ * @brief MainWindow::on_btn_cancel_clicked
  *  all new settings will be discard
  *  the app is closed with return 0;
  */
 void MainWindow::on_btn_cancel_clicked()
 {
-	QApplication::quit();
+    QApplication::quit();
 }
-
-
-/**
- *  TODO always keep the functions in there up to date
- *  check network-input and wlan (if-active) and save it to the Map
- *  make nm-files and restart nm
- *  save (only) the current Profile and save this as Default-Profile 
- *  the app is closed with return 0;
- */
-void MainWindow::on_btn_save_quit_clicked()
-{
-	//check for network, wlan, citrix. In these functions the Map will be updated and exceptions are handled
-	if (check_network_input() && check_wlan_input() && check_citrix_rdp_input()) {
-		//try to save profile to harddisk
-		try {
-			profile.save_Map_to_IniFile();
-		} catch(const developer_error& e) {
-			handle_developer_error(e);
-			return;
-		}
-		//if this worked, make new nm-file(s) and restart nm,
-		//renwe_nm throw and catch its exceptions
-		if (renew_nm()) {
-			//save this profile as the last profile only if everything worked fine
-			//and the last used client logo
-			save_last_profile_from_ui();
-			save_client_logo_from_ui();
-
-			//quit
-			QApplication::quit();
-		}
-	}
-}
-
-
-
-
-
-
-/******************************************************************************\
-|******************************************************************************|
-|* 				slots: network & wlan			      *|
-|******************************************************************************|
-\******************************************************************************/
-
-/**
- *  write the new values in the MapMap of profile
- *  if dhcp: the ip, netmask, gateway and dns won't be checked
- */
-void MainWindow::on_btn_change_network_clicked()
-{
-	if (check_network_input()) {
-		QString error_msg = analyse_and_create_error_message("customer_info", "new_network; SAVEQUIT=BUTTON.quit_and_save;NETWORK=LABEL.frame_network;");
-		print_customer_info(error_msg);
-	}
-}
-
-
-/**
- *  write the new values in the MapMap of profile
- *  if  WLan is inactive: ssid and passwd won't be checked and saved unencrypted
- */
-void MainWindow::on_btn_change_wlan_clicked()
-{
-	if (check_wlan_input()) {
-		QString error_msg = analyse_and_create_error_message("customer_info", "new_wlan; SAVEQUIT=BUTTON.quit_and_save;WLANNAME=LABEL.frame_wlan;");
-		print_customer_info(error_msg);
-	}
-}
-
-
-
-
-/**
- *  the de/activation of the WLan
- */
-void MainWindow::on_chk_wlan_active_clicked()
-{
-	if (ui->chk_wlan_active->isChecked())
-		activate_inputfields_wlan(true);
-	else
-		activate_inputfields_wlan(false);
-	
-}
-
-/**
- *  set dhcp and disable all input-fields
- */
-void MainWindow::on_rdb_network_type_dhcp_clicked()
-{
-	ui->rdb_network_type_dhcp	->setChecked(true);
-	ui->rdb_network_type_static	->setChecked(false);
-	activate_inputfields_network(false);
-}
-
-
-/**
- *  set static and enable all input-fields
- */
-void MainWindow::on_rdb_network_type_static_clicked()
-{
-	ui->rdb_network_type_dhcp	->setChecked(false);
-	ui->rdb_network_type_static	->setChecked(true);
-	activate_inputfields_network(true);
-}
-
-
-
-
-
-/******************************************************************************\
-|******************************************************************************|
-|* 				slots: citrix & rdp			      *|
-|******************************************************************************|
-\******************************************************************************/
-
-
-/**
- *  set dhcp and disable all input-fields
- */
-void MainWindow::on_rdb_citrix_rdp_type_citrix_clicked()
-{
-	ui->rdb_citrix_rdp_type_citrix	->setChecked(true);
-	ui->rdb_citrix_rdp_type_rdp	->setChecked(false);
-	activate_inputfields_citrix(true);
-	activate_inputfields_rdp(false);
-}
-
-
-/**
- *  set static and enable all input-fields
- */
-void MainWindow::on_rdb_citrix_rdp_type_rdp_clicked()
-{
-	ui->rdb_citrix_rdp_type_citrix	->setChecked(false);
-	ui->rdb_citrix_rdp_type_rdp	->setChecked(true);
-	activate_inputfields_citrix(false);
-	activate_inputfields_rdp(true);
-}
-
-/**
- *  write the new values in the MapMap of profile
- *  and set the right type for it
- */
-void MainWindow::on_btn_change_citrix_rdp_clicked()
-{
-	if (check_citrix_rdp_input()) {
-		QString error_msg = analyse_and_create_error_message("customer_info", "new_citrix_rdp; SAVEQUIT=BUTTON.quit_and_save;CITRIXRDP=LABEL.frame_citrix_rdp;");
-		print_customer_info(error_msg);
-	}
-}
-
-
-
-
-/******************************************************************************\
-|******************************************************************************|
-|* 				slots: profiles		  		      *|
-|******************************************************************************|
-\******************************************************************************/
-
-
-/**
- * Delet the current profile if possible (make checks for last_profile in setting.ini)
-*/
-void MainWindow::on_btn_profile_delete_clicked()
-{
-	delProfile();
-}
-
-
-/**
-*  if new: 
-*	New Profile: make it possible to type a new profilename and variables like network, wlan, ...
-*  	disabling the Save & Quit button, to prevent saving an invalid last_profile
-*  else:
-*  	test for valid profilename
-*  	try to save values to map, afterwards to harddisk
-*
-*  doesn't change the last_profile
-*/
-void MainWindow::on_btn_profile_new_clicked() {
-
-	//think of language_fallback
-	QString profile_new = (language.get_Map_Value("button", "profile_new") != "") 
-			? language.get_Map_Value("button", "profile_new") 
-			: language_fallback.get_Map_Value("button", "profile_new");
-
-	if( !ui->btn_profile_new->text().compare(profile_new)) {
-		new_profile_clicked();
-	} else {
-		save_new_profile_clicked();
-	}
-}
-
-
-
-/**
- *  on each change of the dropdown menu profiles
- *  load & print the current profile, then check for wlan
- *  @param profile_Name Name of the selected profile
- */
-void MainWindow::on_drdw_profiles_activated(const QString &profile_Name) 
-{
-	try {
-		//set the name and reload Map
-		profile.set_IniFile_Name(profile_Name);
-	} catch(const developer_error& e) {
-		handle_developer_error(e);
-	}
-	printProfile();
-	// deactivate the wlan if no wlan-module is available
-	check_wlan();
-}
-
-
-
-/******************************************************************************\
-|******************************************************************************|
-|* 				slots: pictures		  		      *|
-|******************************************************************************|
-\******************************************************************************/
-
-
-/**
- *  on each change of the dropdown menu pictures
- *  change the viewed pic
- *  @param logo name of the new logo
- */
-void MainWindow::on_drdw_pictures_activated(const QString &logo)
-{
-	drdw_pictures_select(logo);
-}
-
-
-/**
-*  delete the current client_logo
-*  check if text of client_logo to be deleted: 
-*	last-exisiting client_logo
-*	empty
-*	last_client_logo in setting.ini -> then set a new last_client_logo
-*/
-void MainWindow::on_btn_pictures_delete_clicked()
-{
-	pictures_delete();
-}
-
-
-
-/**
- * show dialog to upload a new picture
- * connect signals to update the new pic and the drdw-pic-list
- */
-void MainWindow::on_btn_pictures_upload_clicked()
-{
-	QString usbPath = setting.get_Map_Value("path", "path_usb");
-	QString outPath = setting.get_Map_Value("path", "path_client_logo");
-
-	FileSystemModelDialog *dialog = new FileSystemModelDialog(this, usbPath, outPath, false, language, language_fallback,
-								 ui->drdw_pictures, ui->lb_picture_left);	
-	//connect the signal of a new picture accepted to update the list and then update the pic itself on the gui
-	QObject::connect(dialog, 	SIGNAL(signalPictureAdd(const QString &)), 
-			this, 		SLOT(selectNewPicture(const QString &)));
-	QObject::connect(dialog, 	SIGNAL(signalPictureAdd(const QString &)), 
-			this, 		SLOT(on_drdw_pictures_activated(const QString &)));	
-
-	//handle the user-information-box by the mainwindow
-	QObject::connect(dialog, 	SIGNAL(send_customer_info(const QString &)), 
-			this, 		SLOT(slot_handle_customer_info(const QString &)));	
-	dialog->resize(700,500);
-	dialog->show();
-}
-
-/**
- *  read in all possibly new pictures and updates the drdw-menu
- *  set the new picture-name to the given one
- */
-void MainWindow::selectNewPicture(const QString &logo)
-{
-	ui->drdw_pictures->clear ();
-	//read in and sort all the pictures of client logos and put them into the drdw
-		//profile.loadProfile(setting.get_Map_Value("profile", "last_profile"));
-	setDrDwPicturesList(readInPictures());
-	ui->drdw_pictures->setCurrentText(logo);
-}
-
-
-/******************************************************************************\
-|******************************************************************************|
-|* 			slots: certificate 				      *|
-|******************************************************************************|
-\******************************************************************************/
-
-/**
- * show dialog to upload a certificate
- */
-void MainWindow::on_btn_certificates_upload_clicked()
-{
-	QString usbPath = setting.get_Map_Value("path", "path_usb");
-	QString outPath = setting.get_Map_Value("path", "path_certificates");
-	//unique_ptr not possbile, because directly running out of scope without even having seen the dialog
-	FileSystemModelDialog* dialog = new FileSystemModelDialog(this, usbPath, outPath, true, language, language_fallback);
-	//handle the user-information-box by the mainwindow
-	QObject::connect(dialog, 	SIGNAL(send_customer_info(const QString &)), 
-			this, 		SLOT(slot_handle_customer_info(const QString &)));	
-	dialog->resize (700,500);
-	dialog->show();
-}
-
-
-
-/******************************************************************************
- ******************************************************************************
- * 			slots: languages and keyboard  			      *
- ******************************************************************************
- ******************************************************************************/
-
-/**
- *  save the current language as default language in the setting.ini if clicked on a new language
- *
- *  on each change of the dropdown menu languages
- *  load & print the current language
- *  @param language_Name Name of the selected language
- */
-void MainWindow::on_drdw_languages_activated(const QString &language_Name) 
-{
-	try {
-		//set the name and reload Map
-		language.set_IniFile_Name(language_Name);
-	} catch(const developer_error& e) {
-		handle_developer_error(e);
-	}
-	//save the new language as default; afterwards the init_language can be used. 
-	set_current_language_to_default();
-	//catches the case where the language is not available as exception, and so the fallback is used. 
-	//uses the values saved in the current language and the language_fallback
-	init_language();
-}
-
