@@ -9,6 +9,7 @@
 #include <QFileSystemModel>
 #include <QFileInfo>
 #include <syslog.h>
+#include <QProcess>
 
 
 // custom
@@ -39,15 +40,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     // read profile
-    m_sProfilesFile = QApplication::applicationDirPath() + "/profiles/default_profile.ini";
+    m_sProfilesFile = SETTINGS_PATH;
     syslog_buffer = m_sProfilesFile.toLocal8Bit();
     syslog(LOG_NOTICE, "Open profiles file %s", syslog_buffer.data());
     loadProfiles();
     syslog(LOG_DEBUG, "load profile settings.");
-
-    // connect button for save profile settings
-    connect(this->ui->btn_save, SIGNAL(clicked()), this, SLOT(on_btn_save_clicked()));
-    connect(this->ui->btn_upload_cert, SIGNAL(clicked()), this, SLOT(on_btn_upload_cert_clicked()));
 
 }
 
@@ -126,7 +123,7 @@ void MainWindow::loadProfiles()
 
     // check if have dhcp or a static ip
     // network type
-    network_type = profiles.value("network/network_type").toString();
+    network_type = profiles.value(NETWORK_TYPE).toString();
     syslog(LOG_DEBUG, "get type of network.");
     syslog_buffer = network_type.toLocal8Bit();
     syslog(LOG_INFO, "Networktype: %s", syslog_buffer.data());
@@ -137,31 +134,31 @@ void MainWindow::loadProfiles()
 
     // check if we use citrix or rdp
     // vdi type
-    citrix_rdp_type = profiles.value("global/citrix_rdp_type").toString();
+    citrix_rdp_type = profiles.value(CITRIX_RDP_TYPE).toString();
     syslog(LOG_DEBUG, "get type of vdi.");
     syslog_buffer = citrix_rdp_type.toLocal8Bit();
     syslog(LOG_INFO, "VDI type: %s", syslog_buffer.data());
 
     // citrix store
-    QString citrix_store = profiles.value("citrix/citrix_store").toString();
+    QString citrix_store = profiles.value(STORE_URL).toString();
     syslog(LOG_DEBUG, "get citrix store.");
     syslog_buffer = citrix_store.toLocal8Bit();
     syslog(LOG_NOTICE, "citrix - Store: %s", syslog_buffer.data());
 
     // citrix netscaler
-    QString citrix_netscaler = profiles.value("citrix/citrix_netscaler").toString();
+    QString citrix_netscaler = profiles.value(NETSCALER_URL).toString();
     syslog(LOG_DEBUG, "get citrix netscaler.");
     syslog_buffer = citrix_netscaler.toLocal8Bit();
     syslog(LOG_INFO, "Citrix - Netscaler: %s", syslog_buffer.data());
 
     // windows domain
-    QString rdp_domain = profiles.value("rdp/rdp_domain").toString();
+    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
     syslog(LOG_DEBUG, "get windows domain for rdp.");
     syslog_buffer = rdp_domain.toLocal8Bit();
     syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
 
     // rdp server
-    QString rdp_server = profiles.value("rdp/rdp_server").toString();
+    QString rdp_server = profiles.value(RDP_URL).toString();
     syslog(LOG_DEBUG, "get rdp server.");
     syslog_buffer = rdp_server.toLocal8Bit();
     syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
@@ -169,7 +166,6 @@ void MainWindow::loadProfiles()
     // set ui for vdi
     setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, rdp_domain, rdp_server);
     syslog(LOG_NOTICE, "set vdi settings on ui");
-
 
 }
 
@@ -515,6 +511,8 @@ void MainWindow::on_btn_upload_cert_clicked()
  */
 void MainWindow::on_btn_save_clicked()
 {
+    qDebug() << "on_btn_save_clicked";
+
     syslog(LOG_DEBUG, "inside function on_btn_save_quit().");
     syslog(LOG_NOTICE, "save all profile settings.");
 
@@ -558,11 +556,11 @@ void MainWindow::on_btn_save_clicked()
         } else {
             syslog(LOG_NOTICE, "all needed information are available.");
             // global
-            profiles.setValue("global/citrix_rdp_type", citrix_rdp_type);
+            profiles.setValue(CITRIX_RDP_TYPE, citrix_rdp_type);
 
             // citrix
-            profiles.setValue("citrix/citrix_store", citrix_store);
-            profiles.setValue("citrix/citrix_netscaler", citrix_netscaler);
+            profiles.setValue(STORE_URL, citrix_store);
+            profiles.setValue(NETSCALER_URL, citrix_netscaler);
             valid_input = true;
         }
 
@@ -580,11 +578,11 @@ void MainWindow::on_btn_save_clicked()
             msgBox->exec();
         } else {
             // global
-            profiles.setValue("global/citrix_rdp_type", citrix_rdp_type);
+            profiles.setValue(CITRIX_RDP_TYPE, citrix_rdp_type);
 
             // rdp
-            profiles.setValue("rdp/rdp_domain", rdp_domain);
-            profiles.setValue("rdp/rdp_server", rdp_server);
+            profiles.setValue(RDP_DOMAIN, rdp_domain);
+            profiles.setValue(RDP_URL, rdp_server);
 
         }
         */
@@ -605,7 +603,9 @@ void MainWindow::on_btn_save_clicked()
         msgBox->setWindowTitle("Konfiguration");
         msgBox->setText("Alle Einstellungen wurden erfolgreich gespeichert.");
         msgBox->exec();
-    }
+
+        this->startStartPage(); // start StartPage
+    }    
 
 }
 
@@ -617,5 +617,24 @@ void MainWindow::on_btn_save_clicked()
 void MainWindow::on_btn_cancel_clicked()
 {
     syslog(LOG_INFO, "application quit because 'cancel' button clicked");
-    QApplication::quit();
+    this->startStartPage();
+}
+
+/*
+ * start StartPage and kill ConfigPage
+ */
+void MainWindow::startStartPage() {
+    // create the new process (StartPage)
+    qDebug() << "starting ...";
+    QProcess *process = new QProcess();
+    QStringList arguments;
+    process->startDetached(PRG_START_PAGE, arguments);
+    process->waitForFinished();
+
+    // killing actual process (ConfigPage)
+    qDebug() << "killing ..." << qApp->applicationFilePath();
+    qint64 pid = QCoreApplication::applicationPid();
+    QProcess::startDetached("kill -SIGTERM " + QString::number(pid));
+    //this->~StartPage();
+
 }
