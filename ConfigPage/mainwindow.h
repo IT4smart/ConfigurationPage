@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSettings>
+#include <QMessageBox>
 
 namespace Ui {
 class MainWindow;
@@ -25,9 +26,12 @@ public:
     // profiles data
     QString network_type, network_ip, network_netmask, network_gateway, network_dns, citrix_rdp_type;
 
+    // for syslog as bufffer
+    QByteArray syslog_buffer;
+
 private slots:
     void on_btn_cancel_clicked();
-    void on_btn_save_quiet_clicked();
+    void on_btn_save_clicked();
     void on_btn_upload_cert_clicked();
 
 private:
@@ -43,6 +47,7 @@ private:
     QString getNetworkNetmask();
     QString m_sSettingsFile;
     QString m_sProfilesFile;
+    QMessageBox* msgBox;
 };
 
 #endif // MAINWINDOW_H

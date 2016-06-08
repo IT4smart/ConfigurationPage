@@ -7,7 +7,7 @@
  */
 exec_cmd::exec_cmd(void)
 {
-    qDebug() << "Create exec_cmd";
+    //qDebug() << "Create exec_cmd";
 }
 
 /**
@@ -15,7 +15,7 @@ exec_cmd::exec_cmd(void)
  */
 exec_cmd::~exec_cmd(void)
 {
-    qDebug() << "Destroy exec_cmd";
+    //qDebug() << "Destroy exec_cmd";
 }
 
 /**

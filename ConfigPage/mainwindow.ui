@@ -19,7 +19,7 @@
      <rect>
       <x>9</x>
       <y>9</y>
-      <width>272</width>
+      <width>521</width>
       <height>190</height>
      </rect>
     </property>
@@ -41,13 +41,6 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="2">
-      <widget class="QRadioButton" name="rbn_dhcp">
-       <property name="text">
-        <string>DHCP</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0" colspan="2">
       <widget class="QLabel" name="lbl_ip">
        <property name="text">
@@ -62,18 +55,15 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="2" colspan="2">
+      <widget class="QLineEdit" name="txt_ip"/>
+     </item>
      <item row="2" column="0" rowspan="2" colspan="2">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Netzmaske:</string>
        </property>
       </widget>
-     </item>
-     <item row="0" column="2" colspan="2">
-      <widget class="QLineEdit" name="txt_ip"/>
-     </item>
-     <item row="5" column="2" colspan="2">
-      <widget class="QLineEdit" name="txt_dns"/>
      </item>
      <item row="1" column="2" colspan="2">
       <widget class="QLineEdit" name="txt_gateway"/>
@@ -88,6 +78,16 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="2">
+      <widget class="QRadioButton" name="rbn_dhcp">
+       <property name="text">
+        <string>DHCP</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2" colspan="2">
+      <widget class="QLineEdit" name="txt_dns"/>
+     </item>
     </layout>
    </widget>
    <widget class="QGroupBox" name="gbx_vdi">
@@ -95,7 +95,7 @@
      <rect>
       <x>15</x>
       <y>223</y>
-      <width>310</width>
+      <width>521</width>
       <height>254</height>
      </rect>
     </property>
@@ -227,7 +227,7 @@
      <string>Zertifikate</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_save_quiet">
+   <widget class="QPushButton" name="btn_save">
     <property name="geometry">
      <rect>
       <x>580</x>
@@ -237,13 +237,13 @@
      </rect>
     </property>
     <property name="text">
-     <string>Speichern &amp;&amp; Beenden</string>
+     <string>Speichern</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_cancel">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>40</x>
       <y>650</y>
       <width>93</width>
       <height>27</height>
@@ -253,10 +253,10 @@
      <string>Abbrechen</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_uplod_cert">
+   <widget class="QPushButton" name="btn_upload_cert">
     <property name="geometry">
      <rect>
-      <x>28</x>
+      <x>70</x>
       <y>520</y>
       <width>211</width>
       <height>27</height>
@@ -267,16 +267,6 @@
     </property>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>862</width>
-     <height>27</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -284,6 +274,16 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>862</width>
+     <height>25</height>
+    </rect>
+   </property>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

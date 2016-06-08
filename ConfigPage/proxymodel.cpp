@@ -68,11 +68,11 @@ QString FileSystemModelDialog::getCertPath()
 void FileSystemModelDialog::accept()
 {
     const QString file = dirFilModel->fileInfo(treeView->currentIndex()).absoluteFilePath();
-    qDebug() << "Cert file: " << file;
+    //qDebug() << "Cert file: " << file;
 
     //set the name of the new pic and its path
     QString picName = dirFilModel->fileInfo(treeView->currentIndex()).fileName();
-    qDebug() << "picName: " << getCertPath() + picName;
+    //qDebug() << "picName: " << getCertPath() + picName;
 
     QString mDlFile = getCertPath() + picName;
 
