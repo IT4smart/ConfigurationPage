@@ -14,7 +14,7 @@ const QString NETSCALER_URL = "citrix/netscaler_url"; // key for settings.ini
 const QString STORE_URL = "citrix/store_url"; // key for settings.ini
 const QString RDP_DOMAIN = "rdp/domain"; // key
 const QString RDP_URL = "rdp/server_url"; // key
-const QString PRG_START_PAGE = "../../startpage/StartPage/StartPage";
+const QString PRG_START_PAGE = "./scripts/start_StartPage.sh";
 
 
 namespace Ui {
