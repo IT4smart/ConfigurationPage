@@ -6,7 +6,7 @@
 #include <QMessageBox>
 
 // constants
-const QString SETTINGS_PATH = "../../startpagenew/Ressources/settings.ini"; // hier werden settings gespeichert
+const QString SETTINGS_PATH = "../../startpage/Ressources/settings.ini"; // hier werden settings gespeichert
 const QString LOGO_PATH = "global/logo_path"; // key für settings.ini
 const QString CITRIX_RDP_TYPE = "global/citrix_rdp_type"; // key
 const QString NETWORK_TYPE = "network/type"; // key for settings.ini
@@ -14,7 +14,7 @@ const QString NETSCALER_URL = "citrix/netscaler_url"; // key for settings.ini
 const QString STORE_URL = "citrix/store_url"; // key for settings.ini
 const QString RDP_DOMAIN = "rdp/domain"; // key
 const QString RDP_URL = "rdp/server_url"; // key
-const QString PRG_START_PAGE = "../../startpagenew/StartPage/StartPage";
+const QString PRG_START_PAGE = "../../startpage/StartPage/StartPage";
 
 
 namespace Ui {
