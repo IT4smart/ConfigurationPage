@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //this->setCentralWidget(this->ui->gbx_network);
     ui->setupUi(this);
-    setlogmask (LOG_UPTO (LOG_NOTICE));
+    setlogmask (LOG_UPTO (LOG_DEBUG));
     openlog ("IT4S-ConfigPage", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
     // read setting
@@ -119,6 +119,9 @@ void MainWindow::loadSettings()
 void MainWindow::loadProfiles()
 {
     QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
     syslog(LOG_NOTICE, "set profile settings globally.");
 
     // check if have dhcp or a static ip
@@ -419,6 +422,10 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         syslog_buffer = citrix_netscaler.toLocal8Bit();
         syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
 
+        // disable rdp fields
+        this->ui->txt_rdp_server->setDisabled(true);
+        this->ui->txt_rdp_domain->setDisabled(true);
+
     } else {
         // we use rdp
         syslog(LOG_DEBUG, "we use rdp.");
@@ -438,14 +445,19 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         syslog(LOG_DEBUG, "get current rdp server.");
         syslog_buffer = rdp_server.toLocal8Bit();
         syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
+
+        // disable citrix fields
+        this->ui->txt_storefront->setDisabled(true);
+        this->ui->txt_netscaler->setDisabled(true);
     }
 
-    // but at the moment we don't use rdp
+    /* but at the moment we don't use rdp
     this->ui->rbn_citrix->setDisabled(true);
     this->ui->rbn_rdp->setDisabled(true);
     this->ui->txt_rdp_domain->setDisabled(true);
     this->ui->txt_rdp_server->setDisabled(true);
     syslog(LOG_DEBUG, "disable all fields. because we don't use them at the moment.");
+    */
 }
 
 /**
@@ -482,6 +494,26 @@ void MainWindow::RehashCerts()
     }
 }
 
+
+
+/**
+ * @brief start StartPage and kill ConfigPage
+ */
+void MainWindow::startStartPage() {
+    // create the new process (StartPage)
+    qDebug() << "starting ...";
+    QProcess *process = new QProcess();
+    process->startDetached("/bin/sh", QStringList{PRG_START_PAGE});
+    process->waitForFinished();
+
+    // killing actual process (ConfigPage)
+    qDebug() << "killing ..." << qApp->applicationFilePath();
+    qint64 pid = QCoreApplication::applicationPid();
+    QProcess::startDetached("kill -SIGTERM " + QString::number(pid));
+    //this->~StartPage();
+
+}
+
 /******************************************************************************\
 |******************************************************************************|
 |* 				slots	  				      *|
@@ -511,8 +543,6 @@ void MainWindow::on_btn_upload_cert_clicked()
  */
 void MainWindow::on_btn_save_clicked()
 {
-    qDebug() << "on_btn_save_clicked";
-
     syslog(LOG_DEBUG, "inside function on_btn_save_quit().");
     syslog(LOG_NOTICE, "save all profile settings.");
 
@@ -569,7 +599,7 @@ void MainWindow::on_btn_save_clicked()
         rdp_domain = QString::fromStdString(this->ui->txt_rdp_domain->text().toStdString());
         rdp_server = QString::fromStdString(this->ui->txt_rdp_server->text().toStdString());
 
-        /* RDP is not active at the moment
+        // RDP is not active at the moment
         if(rdp_domain.isEmpty() && rdp_server.isEmpty())
         {
             msgBox  = new QMessageBox();
@@ -583,13 +613,15 @@ void MainWindow::on_btn_save_clicked()
             // rdp
             profiles.setValue(RDP_DOMAIN, rdp_domain);
             profiles.setValue(RDP_URL, rdp_server);
+            valid_input = true;
 
         }
-        */
+
     }
 
     // save it
     profiles.sync();
+
     syslog(LOG_INFO, "save all changes.");
 
     // rehash certificates if there are some one
@@ -620,20 +652,22 @@ void MainWindow::on_btn_cancel_clicked()
     this->startStartPage();
 }
 
-/*
- * start StartPage and kill ConfigPage
- */
-void MainWindow::startStartPage() {
-    // create the new process (StartPage)
-    qDebug() << "starting ...";
-    QProcess *process = new QProcess();
-    process->startDetached("/bin/sh", QStringList{PRG_START_PAGE});
-    process->waitForFinished();
 
-    // killing actual process (ConfigPage)
-    qDebug() << "killing ..." << qApp->applicationFilePath();
-    qint64 pid = QCoreApplication::applicationPid();
-    QProcess::startDetached("kill -SIGTERM " + QString::number(pid));
-    //this->~StartPage();
+void MainWindow::on_rbn_citrix_clicked()
+{
+    syslog(LOG_DEBUG, "Radiobutton for citrix clicked");
+
+    // disable rdp settings
+    this->ui->txt_rdp_domain->setDisabled(true);
+    this->ui->txt_rdp_server->setDisabled(true);
+    syslog(LOG_DEBUG, "Disable rdp settings");
+
+    // enable citrix settings
+    this->ui->txt_netscaler->setEnabled(true);
+    this->ui->txt_storefront->setEnabled(true);
+    syslog(LOG_DEBUG, "Enable citrix settings");
+
+    // get current configuration
+    syslog(LOG_DEBUG, "get current citrix configuration");
 
 }

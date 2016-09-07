@@ -9,4 +9,5 @@
 cmake_test
 #so that all the builds wont be stored everytime
 ConfigPage-build*
+ConfigPagev2
 build-*
