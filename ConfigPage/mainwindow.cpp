@@ -154,6 +154,13 @@ void MainWindow::loadProfiles()
     syslog_buffer = citrix_netscaler.toLocal8Bit();
     syslog(LOG_INFO, "Citrix - Netscaler: %s", syslog_buffer.data());
 
+    // citrix domain
+    QString citrix_domain = profiles.value(CTX_DOMAIN).toString();
+    syslog(LOG_DEBUG, "get citrix domain");
+    syslog_buffer = citrix_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Citrix - Domain: %s", syslog_buffer.data());
+
+
     // windows domain
     QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
     syslog(LOG_DEBUG, "get windows domain for rdp.");
@@ -167,7 +174,7 @@ void MainWindow::loadProfiles()
     syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
 
     // set ui for vdi
-    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, rdp_domain, rdp_server);
+    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server);
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
 }
@@ -398,12 +405,17 @@ QString MainWindow::getNetworkNetmask()
  * @param rdp_domain
  * @param rdp_server
  */
-void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString rdp_domain, QString rdp_server)
+void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server)
 {
     if(QString::compare(citrix_rdp_type, "citrix") == 0)
     {
         // we use citrix
         syslog(LOG_DEBUG, "we use citrix");
+
+        // we enable all fields, maybe there are disabled
+        this->ui->txt_netscaler->setEnabled(true);
+        this->ui->txt_storefront->setEnabled(true);
+        this->ui->txt_ctx_domain->setEnabled(true);
 
         // set radio button for citrix checked
         this->ui->rbn_citrix->setChecked(true);
@@ -422,6 +434,12 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         syslog_buffer = citrix_netscaler.toLocal8Bit();
         syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
 
+        // set citrix domain
+        this->ui->txt_ctx_domain->setText(citrix_domain);
+        syslog(LOG_DEBUG, "get current citrix domain.");
+        syslog_buffer = citrix_domain.toLocal8Bit();
+        syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
+
         // disable rdp fields
         this->ui->txt_rdp_server->setDisabled(true);
         this->ui->txt_rdp_domain->setDisabled(true);
@@ -429,6 +447,10 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
     } else {
         // we use rdp
         syslog(LOG_DEBUG, "we use rdp.");
+
+        // we enable all fields, maybe there are disabled
+        this->ui->txt_rdp_domain->setEnabled(true);
+        this->ui->txt_rdp_server->setEnabled(true);
 
         // set radio button for rdp checked
         this->ui->rbn_rdp->setChecked(true);
@@ -449,15 +471,8 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         // disable citrix fields
         this->ui->txt_storefront->setDisabled(true);
         this->ui->txt_netscaler->setDisabled(true);
+        this->ui->txt_ctx_domain->setDisabled(true);
     }
-
-    /* but at the moment we don't use rdp
-    this->ui->rbn_citrix->setDisabled(true);
-    this->ui->rbn_rdp->setDisabled(true);
-    this->ui->txt_rdp_domain->setDisabled(true);
-    this->ui->txt_rdp_server->setDisabled(true);
-    syslog(LOG_DEBUG, "disable all fields. because we don't use them at the moment.");
-    */
 }
 
 /**
@@ -653,21 +668,73 @@ void MainWindow::on_btn_cancel_clicked()
 }
 
 
+/**
+ * @brief MainWindow::on_rbn_citrix_clicked
+ */
 void MainWindow::on_rbn_citrix_clicked()
 {
     syslog(LOG_DEBUG, "Radiobutton for citrix clicked");
 
-    // disable rdp settings
-    this->ui->txt_rdp_domain->setDisabled(true);
-    this->ui->txt_rdp_server->setDisabled(true);
-    syslog(LOG_DEBUG, "Disable rdp settings");
-
-    // enable citrix settings
-    this->ui->txt_netscaler->setEnabled(true);
-    this->ui->txt_storefront->setEnabled(true);
-    syslog(LOG_DEBUG, "Enable citrix settings");
-
     // get current configuration
     syslog(LOG_DEBUG, "get current citrix configuration");
 
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
+
+    // citrix store
+    QString citrix_store = profiles.value(STORE_URL).toString();
+    syslog(LOG_DEBUG, "get citrix store.");
+    syslog_buffer = citrix_store.toLocal8Bit();
+    syslog(LOG_NOTICE, "citrix - Store: %s", syslog_buffer.data());
+
+    // citrix netscaler
+    QString citrix_netscaler = profiles.value(NETSCALER_URL).toString();
+    syslog(LOG_DEBUG, "get citrix netscaler.");
+    syslog_buffer = citrix_netscaler.toLocal8Bit();
+    syslog(LOG_INFO, "Citrix - Netscaler: %s", syslog_buffer.data());
+
+    // citrix domain
+    QString citrix_domain = profiles.value(CTX_DOMAIN).toString();
+    syslog(LOG_DEBUG, "get citrix domain");
+    syslog_buffer = citrix_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Citrix - Domain: %s", syslog_buffer.data());
+
+    // set ui for vdi
+    setVdiUi("citrix", citrix_store, citrix_netscaler, citrix_domain, "", "");
+    syslog(LOG_NOTICE, "set vdi settings on ui");
+
+}
+
+/**
+ * @brief MainWindow::on_rbn_rdp_clicked
+ */
+void MainWindow::on_rbn_rdp_clicked()
+{
+    syslog(LOG_DEBUG, "Radiobutton for rdp clicked");
+
+    // get current configuration
+    syslog(LOG_DEBUG, "get current rdp configuration");
+
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
+
+    // windows domain
+    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
+    syslog(LOG_DEBUG, "get windows domain for rdp.");
+    syslog_buffer = rdp_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
+
+    // rdp server
+    QString rdp_server = profiles.value(RDP_URL).toString();
+    syslog(LOG_DEBUG, "get rdp server.");
+    syslog_buffer = rdp_server.toLocal8Bit();
+    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
+
+    // set ui for vdi
+    setVdiUi("rdp", "","", "", rdp_domain, rdp_server);
+    syslog(LOG_NOTICE, "set vdi settings on ui");
 }

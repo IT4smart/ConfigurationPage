@@ -7,7 +7,9 @@
 .cproject
 .project
 cmake_test
+ConfigPage/*.pro.user
 #so that all the builds wont be stored everytime
 ConfigPage-build*
-ConfigPagev2
+ConfigPage/ConfigPagev2
+ConfigPage/ConfigPage
 build-*

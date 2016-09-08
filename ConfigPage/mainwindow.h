@@ -12,6 +12,7 @@ const QString CITRIX_RDP_TYPE = "global/citrix_rdp_type"; // key
 const QString NETWORK_TYPE = "network/type"; // key for settings.ini
 const QString NETSCALER_URL = "citrix/netscaler_url"; // key for settings.ini
 const QString STORE_URL = "citrix/store_url"; // key for settings.ini
+const QString CTX_DOMAIN = "citrix/domain"; //key for settings.ini
 const QString RDP_DOMAIN = "rdp/domain"; // key
 const QString RDP_URL = "rdp/server_url"; // key
 const QString PRG_START_PAGE = "./scripts/start_StartPage.sh";
@@ -45,8 +46,8 @@ private slots:
     void on_btn_cancel_clicked();
     void on_btn_save_clicked();
     void on_btn_upload_cert_clicked();
-
     void on_rbn_citrix_clicked();
+    void on_rbn_rdp_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -54,7 +55,7 @@ private:
     void loadProfiles();
     void startStartPage();
     void setNetworkUi(QString network_type);
-    void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString rdp_domain, QString rdp_server);
+    void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server);
     void RehashCerts();
     QString getNetworkIp();
     QString getNetworkDns();
