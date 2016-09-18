@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>862</width>
-    <height>768</height>
+    <height>1016</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QGroupBox" name="gbx_network">
     <property name="geometry">
      <rect>
-      <x>9</x>
+      <x>20</x>
       <y>9</y>
       <width>521</width>
       <height>190</height>
@@ -96,20 +96,36 @@
       <x>20</x>
       <y>200</y>
       <width>521</width>
-      <height>321</height>
+      <height>461</height>
      </rect>
     </property>
     <property name="title">
      <string>Citrix &amp;&amp; RDP</string>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
+     <item row="5" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_storefront"/>
+     </item>
+     <item row="4" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_netscaler">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_ctx_domain"/>
+     </item>
      <item row="11" column="1" colspan="2">
       <widget class="QLineEdit" name="txt_rdp_server"/>
      </item>
-     <item row="8" column="0" colspan="3">
-      <widget class="Line" name="line_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+     <item row="0" column="2">
+      <widget class="QRadioButton" name="rbn_rdp">
+       <property name="text">
+        <string>RDP</string>
        </property>
       </widget>
      </item>
@@ -120,57 +136,24 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="lbl_rdp">
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
+     <item row="12" column="2">
+      <widget class="QRadioButton" name="rbn_autologin_no">
        <property name="text">
-        <string>RDP:</string>
+        <string>Nein</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="1" colspan="2">
-      <widget class="QLineEdit" name="txt_ctx_domain"/>
-     </item>
-     <item row="11" column="0">
-      <widget class="QLabel" name="lbl_rdp_server">
+     <item row="12" column="0">
+      <widget class="QLabel" name="lbl_autologin">
        <property name="text">
-        <string>Server:</string>
+        <string>Autologin:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QRadioButton" name="rbn_citrix">
+     <item row="12" column="1">
+      <widget class="QRadioButton" name="rbn_autologin_yes">
        <property name="text">
-        <string>Citrix</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1" colspan="2">
-      <widget class="QLineEdit" name="txt_rdp_domain"/>
-     </item>
-     <item row="0" column="2">
-      <widget class="QRadioButton" name="rbn_rdp">
-       <property name="text">
-        <string>RDP</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="lbl_rdp_domain">
-       <property name="text">
-        <string>Domäne:</string>
+        <string>Ja</string>
        </property>
       </widget>
      </item>
@@ -188,17 +171,40 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="lbl_netscaler">
+     <item row="10" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_domain"/>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="lbl_rdp">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
-        <string>Netscaler Gateway:</string>
+        <string>RDP:</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="lbl_storefront">
+     <item row="11" column="0">
+      <widget class="QLabel" name="lbl_rdp_server">
        <property name="text">
-        <string>Storefront - Server:</string>
+        <string>Server:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Benutzername:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QRadioButton" name="rbn_citrix">
+       <property name="text">
+        <string>Citrix</string>
        </property>
       </widget>
      </item>
@@ -209,26 +215,61 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QLineEdit" name="txt_storefront"/>
-     </item>
-     <item row="4" column="1" colspan="2">
-      <widget class="QLineEdit" name="txt_netscaler">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lbl_netscaler">
+       <property name="text">
+        <string>Netscaler Gateway:</string>
        </property>
       </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="lbl_rdp_domain">
+       <property name="text">
+        <string>Domäne:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="lbl_storefront">
+       <property name="text">
+        <string>Storefront - Server:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="3">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Password:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_username"/>
+     </item>
+     <item row="14" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_password"/>
      </item>
     </layout>
    </widget>
    <widget class="QGroupBox" name="gbx_certificates">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>560</y>
+      <x>20</x>
+      <y>700</y>
       <width>838</width>
       <height>28</height>
      </rect>
@@ -241,7 +282,7 @@
     <property name="geometry">
      <rect>
       <x>580</x>
-      <y>650</y>
+      <y>810</y>
       <width>163</width>
       <height>27</height>
      </rect>
@@ -254,7 +295,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>650</y>
+      <y>810</y>
       <width>93</width>
       <height>27</height>
      </rect>
@@ -266,8 +307,8 @@
    <widget class="QPushButton" name="btn_upload_cert">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>580</y>
+      <x>70</x>
+      <y>730</y>
       <width>211</width>
       <height>27</height>
      </rect>

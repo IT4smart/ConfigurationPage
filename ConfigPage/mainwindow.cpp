@@ -46,6 +46,9 @@ MainWindow::MainWindow(QWidget *parent) :
     loadProfiles();
     syslog(LOG_DEBUG, "load profile settings.");
 
+    // ui
+    this->ui->txt_rdp_password->setEchoMode(QLineEdit::Password);
+
 }
 
 /**
@@ -173,8 +176,26 @@ void MainWindow::loadProfiles()
     syslog_buffer = rdp_server.toLocal8Bit();
     syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
 
+    // rdp autologin
+    QString rdp_autologin = profiles.value(RDP_AUTOLOGIN).toString();
+    syslog(LOG_DEBUG, "get rdp autologin.");
+    syslog_buffer = rdp_autologin.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin: %s", syslog_buffer.data());
+
+    // rdp username
+    QString rdp_username = profiles.value(RDP_USERNAME).toString();
+    syslog(LOG_DEBUG, "get rdp username for autologin.");
+    syslog_buffer = rdp_username.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+
+    // rdp password
+    QString rdp_password = profiles.value(RDP_PASSWORD).toString();
+    syslog(LOG_DEBUG, "get rdp password for autologin.");
+    syslog_buffer = rdp_password.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
+
     // set ui for vdi
-    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server);
+    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server, rdp_autologin, rdp_username, rdp_password);
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
 }
@@ -405,7 +426,7 @@ QString MainWindow::getNetworkNetmask()
  * @param rdp_domain
  * @param rdp_server
  */
-void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server)
+void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_autologin, QString rdp_username, QString rdp_password)
 {
     if(QString::compare(citrix_rdp_type, "citrix") == 0)
     {
@@ -443,6 +464,10 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         // disable rdp fields
         this->ui->txt_rdp_server->setDisabled(true);
         this->ui->txt_rdp_domain->setDisabled(true);
+        this->ui->rbn_autologin_no->setDisabled(true);
+        this->ui->rbn_autologin_yes->setDisabled(true);
+        this->ui->txt_rdp_username->setDisabled(true);
+        this->ui->txt_rdp_password->setDisabled(true);
 
     } else {
         // we use rdp
@@ -451,6 +476,10 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         // we enable all fields, maybe there are disabled
         this->ui->txt_rdp_domain->setEnabled(true);
         this->ui->txt_rdp_server->setEnabled(true);
+        this->ui->rbn_autologin_no->setEnabled(true);
+        this->ui->rbn_autologin_yes->setEnabled(true);
+        this->ui->txt_rdp_username->setEnabled(true);
+        this->ui->txt_rdp_password->setEnabled(true);
 
         // set radio button for rdp checked
         this->ui->rbn_rdp->setChecked(true);
@@ -467,6 +496,17 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         syslog(LOG_DEBUG, "get current rdp server.");
         syslog_buffer = rdp_server.toLocal8Bit();
         syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
+
+        // Autologin
+        if(QString::compare(rdp_autologin, "true") == 0) {
+            this->ui->rbn_autologin_yes->setChecked(true);
+            this->ui->txt_rdp_username->setText(rdp_username);
+            this->ui->txt_rdp_password->setText(rdp_password);
+        } else {
+            this->ui->rbn_autologin_no->setChecked(true);
+            this->ui->txt_rdp_username->setDisabled(true);
+            this->ui->txt_rdp_password->setDisabled(true);
+        }
 
         // disable citrix fields
         this->ui->txt_storefront->setDisabled(true);
@@ -567,7 +607,7 @@ void MainWindow::on_btn_save_clicked()
     syslog(LOG_INFO, "load current profile: %s", syslog_buffer.data());
 
     // declare variables
-    QString citrix_store, citrix_netscaler, rdp_domain, rdp_server;
+    QString citrix_store, citrix_netscaler, rdp_domain, rdp_server, rdp_username, rdp_password;
     bool valid_input;
     valid_input = false;
 
@@ -614,6 +654,11 @@ void MainWindow::on_btn_save_clicked()
         rdp_domain = QString::fromStdString(this->ui->txt_rdp_domain->text().toStdString());
         rdp_server = QString::fromStdString(this->ui->txt_rdp_server->text().toStdString());
 
+        if(this->ui->rbn_autologin_yes->isChecked()) {
+            rdp_username = QString::fromStdString(this->ui->txt_rdp_username->text().toStdString());
+            rdp_password = QString::fromStdString(this->ui->txt_rdp_password->text().toStdString());
+        }
+
         // RDP is not active at the moment
         if(rdp_domain.isEmpty() && rdp_server.isEmpty())
         {
@@ -628,6 +673,16 @@ void MainWindow::on_btn_save_clicked()
             // rdp
             profiles.setValue(RDP_DOMAIN, rdp_domain);
             profiles.setValue(RDP_URL, rdp_server);
+
+            if(this->ui->rbn_autologin_yes->isChecked()) {
+                profiles.setValue(RDP_AUTOLOGIN, "true");
+                profiles.setValue(RDP_USERNAME, rdp_username);
+                profiles.setValue(RDP_PASSWORD, rdp_password);
+            } else {
+                profiles.setValue(RDP_AUTOLOGIN, "false");
+                profiles.setValue(RDP_USERNAME, "");
+                profiles.setValue(RDP_PASSWORD, "");
+            }
             valid_input = true;
 
         }
@@ -702,7 +757,7 @@ void MainWindow::on_rbn_citrix_clicked()
     syslog(LOG_INFO, "Citrix - Domain: %s", syslog_buffer.data());
 
     // set ui for vdi
-    setVdiUi("citrix", citrix_store, citrix_netscaler, citrix_domain, "", "");
+    setVdiUi("citrix", citrix_store, citrix_netscaler, citrix_domain, "", "", "", "", "");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
 }
@@ -734,7 +789,103 @@ void MainWindow::on_rbn_rdp_clicked()
     syslog_buffer = rdp_server.toLocal8Bit();
     syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
 
+    // rdp autologin
+    QString rdp_autologin = profiles.value(RDP_AUTOLOGIN).toString();
+    syslog(LOG_DEBUG, "get rdp autologin.");
+    syslog_buffer = rdp_autologin.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin: %s", syslog_buffer.data());
+
+    // rdp username
+    QString rdp_username = profiles.value(RDP_USERNAME).toString();
+    syslog(LOG_DEBUG, "get rdp username for autologin.");
+    syslog_buffer = rdp_username.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+
+    // rdp password
+    QString rdp_password = profiles.value(RDP_PASSWORD).toString();
+    syslog(LOG_DEBUG, "get rdp password for autologin.");
+    syslog_buffer = rdp_password.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
+
     // set ui for vdi
-    setVdiUi("rdp", "","", "", rdp_domain, rdp_server);
+    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, rdp_autologin, rdp_username, rdp_password);
+    syslog(LOG_NOTICE, "set vdi settings on ui");
+}
+
+void MainWindow::on_rbn_autologin_yes_clicked()
+{
+    syslog(LOG_DEBUG, "Enable autologin for rdp.");
+
+    // get current configuration
+    syslog(LOG_DEBUG, "get current rdp configuration");
+
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
+
+    // windows domain
+    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
+    syslog(LOG_DEBUG, "get windows domain for rdp.");
+    syslog_buffer = rdp_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
+
+    // rdp server
+    QString rdp_server = profiles.value(RDP_URL).toString();
+    syslog(LOG_DEBUG, "get rdp server.");
+    syslog_buffer = rdp_server.toLocal8Bit();
+    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
+
+    // rdp autologin
+    QString rdp_autologin = profiles.value(RDP_AUTOLOGIN).toString();
+    syslog(LOG_DEBUG, "get rdp autologin.");
+    syslog_buffer = rdp_autologin.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin: %s", syslog_buffer.data());
+
+    // rdp username
+    QString rdp_username = profiles.value(RDP_USERNAME).toString();
+    syslog(LOG_DEBUG, "get rdp username for autologin.");
+    syslog_buffer = rdp_username.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+
+    // rdp password
+    QString rdp_password = profiles.value(RDP_PASSWORD).toString();
+    syslog(LOG_DEBUG, "get rdp password for autologin.");
+    syslog_buffer = rdp_password.toLocal8Bit();
+    syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
+
+    // set ui for vdi
+    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, "true", rdp_username, rdp_password);
+    syslog(LOG_NOTICE, "set vdi settings on ui");
+
+}
+
+void MainWindow::on_rbn_autologin_no_clicked()
+{
+    syslog(LOG_DEBUG, "Disable autologin for rdp.");
+
+    // get current configuration
+    syslog(LOG_DEBUG, "get current rdp configuration");
+
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
+
+    // windows domain
+    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
+    syslog(LOG_DEBUG, "get windows domain for rdp.");
+    syslog_buffer = rdp_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
+
+    // rdp server
+    QString rdp_server = profiles.value(RDP_URL).toString();
+    syslog(LOG_DEBUG, "get rdp server.");
+    syslog_buffer = rdp_server.toLocal8Bit();
+    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
+
+
+    // set ui for vdi
+    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, "false", "", "");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 }

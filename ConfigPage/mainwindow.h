@@ -15,6 +15,9 @@ const QString STORE_URL = "citrix/store_url"; // key for settings.ini
 const QString CTX_DOMAIN = "citrix/domain"; //key for settings.ini
 const QString RDP_DOMAIN = "rdp/domain"; // key
 const QString RDP_URL = "rdp/server_url"; // key
+const QString RDP_AUTOLOGIN = "rdp/autologin";
+const QString RDP_USERNAME = "rdp/user";
+const QString RDP_PASSWORD = "rdp/password";
 const QString PRG_START_PAGE = "./scripts/start_StartPage.sh";
 
 
@@ -48,6 +51,8 @@ private slots:
     void on_btn_upload_cert_clicked();
     void on_rbn_citrix_clicked();
     void on_rbn_rdp_clicked();
+    void on_rbn_autologin_yes_clicked();
+    void on_rbn_autologin_no_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -55,7 +60,7 @@ private:
     void loadProfiles();
     void startStartPage();
     void setNetworkUi(QString network_type);
-    void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server);
+    void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_autologin, QString rdp_username, QString rdp_password);
     void RehashCerts();
     QString getNetworkIp();
     QString getNetworkDns();
