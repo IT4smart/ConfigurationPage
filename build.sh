@@ -37,9 +37,9 @@ sed '/Depends/d' -i "${SRC_DIR}/files/DEBIAN/control"
 echo "Package: configpage" >> "${SRC_DIR}/files/DEBIAN/control"
 echo "Depends: qt5-default" >> "${SRC_DIR}/files/DEBIAN/control"
 mkdir -p files/opt/IT4S/configurationpage/ConfigPage
-cp -ar ConfigPage/ConfigPage files/opt/IT4S/ConfigPage/ConfigPage
-cp -ar ConfigPage/certificates files/opt/IT4S/Configpage
-cp -ar ConfigPage/scripts files/opt/IT4S/ConfigPage
-cp -ar ConfigPage/setting files/opt/IT4S/ConfigPage
+cp -ar ConfigPage/ConfigPage files/opt/IT4S/configurationpage/ConfigPage
+cp -ar ConfigPage/certificates files/opt/IT4S/configurationpage/ConfigPage
+cp -ar ConfigPage/scripts files/opt/IT4S/configurationpage/ConfigPage
+cp -ar ConfigPage/setting files/opt/IT4S/configurationpage/ConfigPage
 fix_arch_ctl "files/DEBIAN/control"
 dpkg_build files "${1}-configpage.deb"
