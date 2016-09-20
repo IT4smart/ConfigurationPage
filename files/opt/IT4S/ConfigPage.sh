@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /opt/IT4S/ConfigPage/ConfigPage && ./ConfigPage
+cd /opt/IT4S/configurationpage/ConfigPage && ./ConfigPage
 

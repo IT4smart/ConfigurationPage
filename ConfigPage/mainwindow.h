@@ -6,7 +6,7 @@
 #include <QMessageBox>
 
 // constants
-const QString SETTINGS_PATH = "../../StartPage/Ressources/settings.ini"; // hier werden settings gespeichert
+const QString SETTINGS_PATH = "../../startpage/Ressources/settings.ini"; // hier werden settings gespeichert
 const QString LOGO_PATH = "global/logo_path"; // key für settings.ini
 const QString CITRIX_RDP_TYPE = "global/citrix_rdp_type"; // key
 const QString NETWORK_TYPE = "network/type"; // key for settings.ini
