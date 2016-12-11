@@ -43,3 +43,10 @@ cp -ar ConfigPage/scripts files/opt/IT4S/configurationpage/ConfigPage
 cp -ar ConfigPage/setting files/opt/IT4S/configurationpage/ConfigPage
 fix_arch_ctl "files/DEBIAN/control"
 dpkg_build files "${1}-configpage.deb"
+
+# get current version of this package
+version=$(awk '/^Version:/ { print $2 }' files/DEBIAN/control)
+package=$(awk '/^Package:/ { print $2 }' files/DEBIAN/control)
+architecture=$(awk '/^Architecture:/ { print $2 }' files/DEBIAN/control)
+
+mv "${1}-configpage.deb" "${package}_${version}_${architecture}.deb"
