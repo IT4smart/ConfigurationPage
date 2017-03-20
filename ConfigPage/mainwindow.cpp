@@ -626,6 +626,39 @@ void MainWindow::runChangeScreenResolution(QString mode, QString hdmi_mode) {
     // result
     syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
 
+    if(!buffer.first.isEmpty) {
+        rebootDevice();
+    }
+
+    // error
+    if(!buffer.second.isEmpty())
+    {
+        syslog(LOG_ERR, "Result: %s", buffer.second.data());
+    }
+}
+
+/**
+ * @brief MainWindow::rebootDevice
+ */
+void MainWindow::rebootDevice() {
+
+    // declare variables
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+    exec_cmd script;
+
+    command = "sudo reboot";
+
+    syslog_buffer = command.toLocal8Bit();
+    syslog(LOG_DEBUG, "Command: %s", syslog_buffer.data());
+
+    // execute script
+    buffer = script.exec_process(command);
+
+    // result
+    syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
+
     // error
     if(!buffer.second.isEmpty())
     {

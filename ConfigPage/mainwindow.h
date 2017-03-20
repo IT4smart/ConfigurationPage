@@ -67,6 +67,7 @@ private:
     void setSystemUi(QString resolution_type = "dynamic", QString resolution = "800x600");
     void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_autologin, QString rdp_username, QString rdp_password);
     void RehashCerts();
+    void rebootDevice();
     void runChangeScreenResolution(QString mode, QString hdmi_mode = "0");
     int getScreenResolutionMode(QString resolution);
     QString getNetworkIp();
