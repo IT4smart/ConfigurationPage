@@ -10,7 +10,6 @@
 #include <QFileInfo>
 #include <syslog.h>
 #include <QProcess>
-#include <QSysInfo>
 
 
 // custom
@@ -938,14 +937,11 @@ void MainWindow::on_btn_save_clicked()
     RehashCerts();
     syslog(LOG_INFO, "try to rehash certificates.");
 
-    // Get system cpu architecture to decide how we change the resolution
-    QSysInfo systeminfo;
-    if(systeminfo.currentCpuArchitecture() == "arm") {
-        syslog(LOG_INFO, "try to change screen resolution on arm.");
-        // run a bash programm which changes the screen resolution.pi
-        QString hdmi_mode = QString::number(getScreenResolutionMode(this->ui->cbx_aufloesung->currentText()));
-        runChangeScreenResolution(mode, hdmi_mode);
-    }
+    syslog(LOG_INFO, "try to change screen resolution on arm.");
+    // run a bash programm which changes the screen resolution.pi
+    QString hdmi_mode = QString::number(getScreenResolutionMode(this->ui->cbx_aufloesung->currentText()));
+    runChangeScreenResolution(mode, hdmi_mode);
+
 
     if(valid_input)
     {
