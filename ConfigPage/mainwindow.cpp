@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <syslog.h>
 #include <QProcess>
+#include <QSysInfo>
 
 
 // custom
@@ -26,25 +27,51 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    //this->setCentralWidget(this->ui->gbx_network);
     ui->setupUi(this);
+
     setlogmask (LOG_UPTO (LOG_DEBUG));
     openlog ("IT4S-ConfigPage", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
+
     // read setting
     m_sSettingsFile = QApplication::applicationDirPath() + "/setting/setting.ini";
-    syslog_buffer = m_sSettingsFile.toLocal8Bit();
-    syslog(LOG_NOTICE, "Open settings file %s", syslog_buffer.data());
-    loadSettings();
-    syslog(LOG_DEBUG, "load settings.");
+
+    // check if settings.ini exists
+    if(QFile(m_sSettingsFile).exists()) {
+        syslog_buffer = m_sSettingsFile.toLocal8Bit();
+        syslog(LOG_NOTICE, "Open settings file %s", syslog_buffer.data());
+        loadSettings();
+        syslog(LOG_DEBUG, "load settings.");
+
+        // read profile
+        m_sProfilesFile = SETTINGS_PATH;
+
+        // check if profile file is available
+        if(QFile(m_sProfilesFile).exists()) {
+            /*
+             * possible options: http://elinux.org/RPiconfig#Video
+             * We have to do this once in the code.
+             * */
+            this->ui->cbx_aufloesung->addItems({"800x600    60Hz", "1024x768    60Hz", "1152x864    60Hz", "1280x768    60Hz", "1280x800    60Hz", "1280x960    60Hz", "1280x1024   60Hz", "1360x768    60Hz", "1400x1050   60Hz", "1440x900    60Hz", "1600x1200   60hz", "1680x1050   60Hz", "1792x1344   60Hz", "1856x1392   60Hz", "1920x1200   60Hz", "1920x1440   60Hz", "2560x1600   60Hz"});
+            syslog_buffer = QString::number(this->ui->cbx_aufloesung->count()).toLocal8Bit();
+            syslog(LOG_DEBUG, "Init combobox with %s items.", syslog_buffer.data());
+
+            syslog_buffer_p = m_sProfilesFile.toLocal8Bit();
+            syslog(LOG_NOTICE, "Open profiles file %s", syslog_buffer_p.data());
+            this->ui->statusBar->setToolTip("Das Profil wird geladen.");
+            loadProfiles();
+            syslog(LOG_DEBUG, "load profile settings.");
+         } else {
+              syslog(LOG_ERR, "The profile file doesn't exists at the path: %s", syslog_buffer_p.data());
+              this->ui->statusBar->setStatusTip("Das Profile konnte nicht geladen werden. Bitte informieren Sie ihren Administrator.");
+         }
 
 
-    // read profile
-    m_sProfilesFile = SETTINGS_PATH;
-    syslog_buffer = m_sProfilesFile.toLocal8Bit();
-    syslog(LOG_NOTICE, "Open profiles file %s", syslog_buffer.data());
-    loadProfiles();
-    syslog(LOG_DEBUG, "load profile settings.");
+
+    } else {
+            syslog(LOG_ERR, "The settings file doesn't exists at the path: %s", syslog_buffer.data());
+            this->ui->statusBar->setStatusTip("Datei für die Konfiguration der Oberfläche konnte nicht gefunden werden.");
+    }
 
     // ui
     this->ui->txt_rdp_password->setEchoMode(QLineEdit::Password);
@@ -62,12 +89,13 @@ MainWindow::~MainWindow()
 }
 
 
+
 /**
  * @brief MainWindow::loadSettings
  */
 void MainWindow::loadSettings()
 {
-    QSettings settings(m_sSettingsFile, QSettings::NativeFormat);
+    QSettings settings(m_sSettingsFile, QSettings::IniFormat);
     syslog(LOG_DEBUG, "set settings globally.");
 
     // load all paths
@@ -113,6 +141,12 @@ void MainWindow::loadSettings()
     syslog(LOG_DEBUG, "set script to rehash certificates after upload them.");
     syslog_buffer = script_rehash_certs.toLocal8Bit();
     syslog(LOG_NOTICE, "Script to rehash certificates: %s", syslog_buffer.data());
+
+    // change screen resolution
+    script_change_screen_resolution = settings.value("script/change_screen_resolution").toString();
+    syslog(LOG_DEBUG, "set script to change the screen resolution on RPi.");
+    syslog_buffer = script_change_screen_resolution.toLocal8Bit();
+    syslog(LOG_NOTICE, "Script to change screen resolution: %s", syslog_buffer.data());
 }
 
 
@@ -186,7 +220,7 @@ void MainWindow::loadProfiles()
     QString rdp_username = profiles.value(RDP_USERNAME).toString();
     syslog(LOG_DEBUG, "get rdp username for autologin.");
     syslog_buffer = rdp_username.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+    syslog(LOG_INFO, "RDP Autologin username: %s", syslog_buffer.data());
 
     // rdp password
     QString rdp_password = profiles.value(RDP_PASSWORD).toString();
@@ -194,10 +228,59 @@ void MainWindow::loadProfiles()
     syslog_buffer = rdp_password.toLocal8Bit();
     syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
 
+    // resolution type
+    QString resolution_type = profiles.value(SYS_RESOLUTION_TYPE).toString();
+    syslog(LOG_DEBUG, "get resolution type for screen");
+    syslog_buffer = resolution_type.toLocal8Bit();
+    syslog(LOG_INFO, "Resolution type: %s", syslog_buffer.data());
+
+    // resolution
+    QString resolution = profiles.value(SYS_RESOLUTION).toString();
+    syslog(LOG_DEBUG, "get resolution for screen");
+    syslog_buffer = resolution.toLocal8Bit();
+    syslog(LOG_INFO, "Resolution: %s", syslog_buffer.data());
+
+
     // set ui for vdi
     setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server, rdp_autologin, rdp_username, rdp_password);
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
+    setSystemUi(resolution_type, resolution);
+    syslog(LOG_NOTICE, "Set system settings on ui.");
+
+}
+
+
+/**
+ * @brief MainWindow::setSystemUi
+ * @param resolution_type
+ * @param resolution
+ */
+void MainWindow::setSystemUi(QString resolution_type, QString resolution)
+{
+    if(QString::compare(resolution_type, "dynamic") == 0) {
+        this->ui->cbx_aufloesung->setDisabled(true);
+        this->ui->rbn_res_dyn->setChecked(true);
+        this->ui->rbn_res_stat->setChecked(false);
+
+    } else {
+        this->ui->cbx_aufloesung->setEnabled(true);
+
+        int index = this->ui->cbx_aufloesung->findText(resolution);
+
+        // logging
+        syslog_buffer = QString::number(index).toLocal8Bit();
+        syslog(LOG_DEBUG, "Index of resolution: %s", syslog_buffer.data());
+
+        if(index >= 0) {
+            this->ui->cbx_aufloesung->setCurrentIndex(index);
+        } else {
+            this->ui->cbx_aufloesung->setCurrentIndex(0);
+        }
+
+        this->ui->rbn_res_dyn->setChecked(false);
+        this->ui->rbn_res_stat->setChecked(true);
+    }
 }
 
 /**
@@ -462,6 +545,7 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
 
         // disable rdp fields
+        this->ui->rbn_rdp->setChecked(false);
         this->ui->txt_rdp_server->setDisabled(true);
         this->ui->txt_rdp_domain->setDisabled(true);
         this->ui->rbn_autologin_no->setDisabled(true);
@@ -509,11 +593,47 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         }
 
         // disable citrix fields
+        this->ui->rbn_citrix->setChecked(false);
         this->ui->txt_storefront->setDisabled(true);
         this->ui->txt_netscaler->setDisabled(true);
         this->ui->txt_ctx_domain->setDisabled(true);
     }
 }
+
+/**
+ * @brief runChangeScreenResolution
+ * @param cpuarchitecture
+ */
+void MainWindow::runChangeScreenResolution(QString mode, QString hdmi_mode) {
+
+    // declare variables
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+    exec_cmd script;
+
+    if(QString::compare(hdmi_mode, "0") == 0) {
+        command = "sudo python " + QApplication::applicationDirPath() + path_scripts + script_change_screen_resolution + " " + mode;
+    } else {
+        command = "sudo python " + QApplication::applicationDirPath() + path_scripts + script_change_screen_resolution + " " + mode + " --hdmi_mode " + hdmi_mode;
+    }
+
+    syslog_buffer = command.toLocal8Bit();
+    syslog(LOG_DEBUG, "Command: %s", syslog_buffer.data());
+
+    // execute script
+    buffer = script.exec_process(command);
+
+    // result
+    syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
+
+    // error
+    if(!buffer.second.isEmpty())
+    {
+        syslog(LOG_ERR, "Result: %s", buffer.second.data());
+    }
+}
+
 
 /**
  * @brief MainWindow::RehashCerts
@@ -569,6 +689,103 @@ void MainWindow::startStartPage() {
 
 }
 
+/**
+ * @brief MainWindow::getScreenResolutionMode
+ * @param resolution
+ * @return
+ */
+int MainWindow::getScreenResolutionMode(QString resolution) {
+    int mode = 0;
+
+    // 800 x 600 with 60Hz
+    if(QString::compare(resolution, "800x600    60Hz") == 0) {
+        mode = 9;
+    }
+
+    // 1024 x 768 with 60Hz
+    if(QString::compare(resolution, "1024x768    60Hz") == 0) {
+        mode = 16;
+    }
+
+    // 1152 x 864 with 75Hz
+    if(QString::compare(resolution, "1152x864    75Hz") == 0) {
+        mode = 21;
+    }
+
+    // 1280 x 768 with 60Hz
+    if(QString::compare(resolution, "1280x768    60Hz") == 0) {
+        mode = 23;
+    }
+
+    // 1280 x 800 with 60Hz
+    if(QString::compare(resolution, "1280x800    60Hz") == 0) {
+        mode = 28;
+    }
+
+    // 1280 x 960 with 60Hz
+    if(QString::compare(resolution, "1280x960    60Hz") == 0) {
+        mode = 32;
+    }
+
+    // 1280 x 1024 with 60Hz
+    if(QString::compare(resolution, "1280x1024    60Hz") == 0) {
+        mode = 35;
+    }
+
+    // 1360 x 768 with 60Hz
+    if(QString::compare(resolution, "1360x768    60Hz") == 0) {
+        mode = 39;
+    }
+
+    // 1400 x 1050 with 60Hz
+    if(QString::compare(resolution, "1400x1050    60Hz") == 0) {
+        mode = 42;
+    }
+
+    // 1440 x 900 with 60Hz
+    if(QString::compare(resolution, "1440x900    60Hz") == 0) {
+        mode = 47;
+    }
+
+    // 1600 x 1200 with 60Hz
+    if(QString::compare(resolution, "1600x1200    60Hz") == 0) {
+        mode = 51;
+    }
+
+    // 1680 x 1050 with 60Hz
+    if(QString::compare(resolution, "1680x1050    60Hz") == 0) {
+        mode = 58;
+    }
+
+    // 1792 x 1344 with 60Hz
+    if(QString::compare(resolution, "1792x1344    60Hz") == 0) {
+        mode = 62;
+    }
+
+    // 1856 x 1392 with 60Hz
+    if(QString::compare(resolution, "1856x1392    60Hz") == 0) {
+        mode = 65;
+    }
+
+    // 1920 x 1200 with 60Hz
+    if(QString::compare(resolution, "1920x1200    60Hz") == 0) {
+        mode = 69;
+    }
+
+    // 1920 x 1440 with 60Hz
+    if(QString::compare(resolution, "1920x1440    60Hz") == 0) {
+        mode = 73;
+    }
+
+    // 2560 x 1600 with 60Hz
+    if(QString::compare(resolution, "2560x1600    60Hz") == 0) {
+        mode = 77;
+    }
+
+    // return
+    return mode;
+}
+
 /******************************************************************************\
 |******************************************************************************|
 |* 				slots	  				      *|
@@ -602,7 +819,7 @@ void MainWindow::on_btn_save_clicked()
     syslog(LOG_NOTICE, "save all profile settings.");
 
     // load profiles file
-    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    QSettings profiles(m_sProfilesFile, QSettings::IniFormat);
     syslog_buffer = m_sProfilesFile.toLocal8Bit();
     syslog(LOG_INFO, "load current profile: %s", syslog_buffer.data());
 
@@ -689,6 +906,29 @@ void MainWindow::on_btn_save_clicked()
 
     }
 
+
+    // check resolution
+    QString mode = "0";
+    if(this->ui->rbn_res_stat->isChecked()) {
+        // get resolution
+        QString resolution = this->ui->cbx_aufloesung->currentText();
+
+        profiles.setValue(SYS_RESOLUTION_TYPE, "static");
+        profiles.setValue(SYS_RESOLUTION, resolution);
+
+        mode = "1";
+
+        valid_input = true;
+
+    } else {
+        profiles.setValue(SYS_RESOLUTION_TYPE, "dynamic");
+        profiles.setValue(SYS_RESOLUTION, "");
+
+        mode = "0";
+
+        valid_input = true;
+    }
+
     // save it
     profiles.sync();
 
@@ -697,6 +937,15 @@ void MainWindow::on_btn_save_clicked()
     // rehash certificates if there are some one
     RehashCerts();
     syslog(LOG_INFO, "try to rehash certificates.");
+
+    // Get system cpu architecture to decide how we change the resolution
+    QSysInfo systeminfo;
+    if(systeminfo.currentCpuArchitecture() == "arm") {
+        syslog(LOG_INFO, "try to change screen resolution on arm.");
+        // run a bash programm which changes the screen resolution.pi
+        QString hdmi_mode = QString::number(getScreenResolutionMode(this->ui->cbx_aufloesung->currentText()));
+        runChangeScreenResolution(mode, hdmi_mode);
+    }
 
     if(valid_input)
     {
@@ -799,7 +1048,7 @@ void MainWindow::on_rbn_rdp_clicked()
     QString rdp_username = profiles.value(RDP_USERNAME).toString();
     syslog(LOG_DEBUG, "get rdp username for autologin.");
     syslog_buffer = rdp_username.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+    syslog(LOG_INFO, "RDP Autologin username: %s", syslog_buffer.data());
 
     // rdp password
     QString rdp_password = profiles.value(RDP_PASSWORD).toString();
@@ -812,6 +1061,9 @@ void MainWindow::on_rbn_rdp_clicked()
     syslog(LOG_NOTICE, "set vdi settings on ui");
 }
 
+/**
+ * @brief MainWindow::on_rbn_autologin_yes_clicked
+ */
 void MainWindow::on_rbn_autologin_yes_clicked()
 {
     syslog(LOG_DEBUG, "Enable autologin for rdp.");
@@ -846,7 +1098,7 @@ void MainWindow::on_rbn_autologin_yes_clicked()
     QString rdp_username = profiles.value(RDP_USERNAME).toString();
     syslog(LOG_DEBUG, "get rdp username for autologin.");
     syslog_buffer = rdp_username.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin username: %", syslog_buffer.data());
+    syslog(LOG_INFO, "RDP Autologin username: %s", syslog_buffer.data());
 
     // rdp password
     QString rdp_password = profiles.value(RDP_PASSWORD).toString();
@@ -888,4 +1140,53 @@ void MainWindow::on_rbn_autologin_no_clicked()
     // set ui for vdi
     setVdiUi("rdp", "","", "", rdp_domain, rdp_server, "false", "", "");
     syslog(LOG_NOTICE, "set vdi settings on ui");
+}
+
+/**
+ * @brief MainWindow::on_rbn_res_dyn_clicked
+ * If radiobutton clicked then the resolution is dynamically and the dropdown is to disable
+ */
+void MainWindow::on_rbn_res_dyn_clicked()
+{
+    syslog(LOG_DEBUG, "Radiobutton for screen resolution dynamic clicked");
+
+    setSystemUi();
+
+
+}
+
+/**
+ * @brief MainWindow::on_rbn_res_stat_clicked
+ * If radiobutton clicked the dropown has to be enabled
+ */
+void MainWindow::on_rbn_res_stat_clicked()
+{
+    syslog(LOG_DEBUG, "Radiobutton for screen resolution static clicked");
+
+    // get current configuration
+    syslog(LOG_DEBUG, "get current screen resolution configuration");
+
+    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
+    if (profiles.status() == QSettings::AccessError) {
+        syslog(LOG_ERR, "We could not access the file.");
+    }
+
+    // screen resolution
+    QString resolution = profiles.value(SYS_RESOLUTION).toString();
+    syslog(LOG_DEBUG, "get screen resolution.");
+    syslog_buffer = resolution.toLocal8Bit();
+    syslog(LOG_INFO, "Screen resolution: %s", syslog_buffer.data());
+
+    // screen resolution type
+    QString resolution_type = profiles.value(SYS_RESOLUTION_TYPE).toString();
+    syslog(LOG_DEBUG, "get screen resolution type.");
+    syslog_buffer = resolution_type.toLocal8Bit();
+    syslog(LOG_INFO, "Screen resolution type: %s", syslog_buffer.data());
+
+    if(QString::compare(resolution_type, "dynamic") == 0) {
+        resolution_type = "static";
+    }
+
+
+    setSystemUi(resolution_type,resolution);
 }
