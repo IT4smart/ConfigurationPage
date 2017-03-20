@@ -25,10 +25,11 @@ with open("/boot/config.txt", "r") as ins:
         # if the mode is static we need the hdmi_mode greater than 0
         if args.mode == "1" and args.hdmi_mode > 0:
             # at first we need to check if we are currently running on dynamic screen resolution mode or on static
-            if line.find("#disable_overscan") >= 0:
+            if line.find("disable_overscan") >= 0:
                 # we are running on dynamic screen resolution
                 # we have to change the current line and also the hdmi_mode
-                line = line.translate(None, "#")
+                if line[:1] != "#":
+			line = "#" + line
                 #print line
 
             if line.find("hdmi_mode") >= 0:
@@ -59,8 +60,7 @@ with open("/boot/config.txt", "r") as ins:
         if args.mode == "0":
             # check the current mode is static screen resolution
             if line.find("disable_overscan") >= 0:
-                if line[:1] != "#":
-                    line = "#" + line
+                line = line.translate(None, "#")
             
             if line.find("hdmi_group") >= 0:
                 if line[:1] != "#":
