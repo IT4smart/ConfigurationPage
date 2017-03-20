@@ -1179,7 +1179,7 @@ void MainWindow::on_rbn_res_stat_clicked()
     syslog_buffer = resolution_type.toLocal8Bit();
     syslog(LOG_INFO, "Screen resolution type: %s", syslog_buffer.data());
 
-    if(QString::compare(resolution_type, "dynamic") == 0) {
+    if((QString::compare(resolution_type, "dynamic") == 0) || (resolution.trimmed().isEmpty())) {
         resolution_type = "static";
     }
 
