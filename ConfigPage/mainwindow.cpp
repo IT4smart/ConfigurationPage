@@ -257,7 +257,7 @@ void MainWindow::loadProfiles()
  */
 void MainWindow::setSystemUi(QString resolution_type, QString resolution)
 {
-    if(QString::compare(resolution_type, "dynamic") == 0) {
+    if((QString::compare(resolution_type, "dynamic") == 0) || (resolution_type.trimmed().isEmpty())) {
         this->ui->cbx_aufloesung->setDisabled(true);
         this->ui->rbn_res_dyn->setChecked(true);
         this->ui->rbn_res_stat->setChecked(false);
