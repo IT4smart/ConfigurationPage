@@ -626,7 +626,7 @@ void MainWindow::runChangeScreenResolution(QString mode, QString hdmi_mode) {
     // result
     syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
 
-    if(!buffer.first.isEmpty) {
+    if(!buffer.first.isEmpty()) {
         rebootDevice();
     }
 
