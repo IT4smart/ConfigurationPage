@@ -31,6 +31,10 @@ MainWindow::MainWindow(QWidget *parent) :
     setlogmask (LOG_UPTO (LOG_DEBUG));
     openlog ("IT4S-ConfigPage", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
+    /* ******************
+     *  Todo:
+     *      - check on which device we are running, so we can disable all functions that are not supported.
+     * */
 
     // read setting
     m_sSettingsFile = QApplication::applicationDirPath() + "/setting/setting.ini";
@@ -524,25 +528,6 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         this->ui->rbn_citrix->setChecked(true);
         syslog(LOG_DEBUG, "check radio button for citrix.");
 
-        // set citrix store
-        this->ui->txt_storefront->setText(citrix_store);
-        syslog(LOG_DEBUG, "get current citrix store.");
-        syslog_buffer = citrix_store.toLocal8Bit();
-        syslog(LOG_INFO, "Current citrix store: %s", syslog_buffer.data());
-
-
-        // set citrix netscaler
-        this->ui->txt_netscaler->setText(citrix_netscaler);
-        syslog(LOG_DEBUG, "get current citrix netscaler.");
-        syslog_buffer = citrix_netscaler.toLocal8Bit();
-        syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
-
-        // set citrix domain
-        this->ui->txt_ctx_domain->setText(citrix_domain);
-        syslog(LOG_DEBUG, "get current citrix domain.");
-        syslog_buffer = citrix_domain.toLocal8Bit();
-        syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
-
         // disable rdp fields
         this->ui->rbn_rdp->setChecked(false);
         this->ui->txt_rdp_server->setDisabled(true);
@@ -568,23 +553,11 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         this->ui->rbn_rdp->setChecked(true);
         syslog(LOG_DEBUG, "check radio button for rdp.");
 
-        // set windows domain
-        this->ui->txt_rdp_domain->setText(rdp_domain);
-        syslog(LOG_DEBUG, "get current windows domain");
-        syslog_buffer = rdp_domain.toLocal8Bit();
-        syslog(LOG_INFO, "Current windows domain: %s", syslog_buffer.data());
 
-        // set rdp server
-        this->ui->txt_rdp_server->setText(rdp_server);
-        syslog(LOG_DEBUG, "get current rdp server.");
-        syslog_buffer = rdp_server.toLocal8Bit();
-        syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
 
         // Autologin
         if(QString::compare(rdp_autologin, "true") == 0) {
             this->ui->rbn_autologin_yes->setChecked(true);
-            this->ui->txt_rdp_username->setText(rdp_username);
-            this->ui->txt_rdp_password->setText(rdp_password);
         } else {
             this->ui->rbn_autologin_no->setChecked(true);
             this->ui->txt_rdp_username->setDisabled(true);
@@ -597,6 +570,42 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         this->ui->txt_netscaler->setDisabled(true);
         this->ui->txt_ctx_domain->setDisabled(true);
     }
+
+    // set text to input fields
+    // set citrix store
+    this->ui->txt_storefront->setText(citrix_store);
+    syslog(LOG_DEBUG, "get current citrix store.");
+    syslog_buffer = citrix_store.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix store: %s", syslog_buffer.data());
+
+
+    // set citrix netscaler
+    this->ui->txt_netscaler->setText(citrix_netscaler);
+    syslog(LOG_DEBUG, "get current citrix netscaler.");
+    syslog_buffer = citrix_netscaler.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
+
+    // set citrix domain
+    this->ui->txt_ctx_domain->setText(citrix_domain);
+    syslog(LOG_DEBUG, "get current citrix domain.");
+    syslog_buffer = citrix_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
+
+    // set windows domain
+    this->ui->txt_rdp_domain->setText(rdp_domain);
+    syslog(LOG_DEBUG, "get current windows domain");
+    syslog_buffer = rdp_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Current windows domain: %s", syslog_buffer.data());
+
+    // set rdp server
+    this->ui->txt_rdp_server->setText(rdp_server);
+    syslog(LOG_DEBUG, "get current rdp server.");
+    syslog_buffer = rdp_server.toLocal8Bit();
+    syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
+
+    // set rdp autologin
+    this->ui->txt_rdp_username->setText(rdp_username);
+    this->ui->txt_rdp_password->setText(rdp_password);
 }
 
 /**
@@ -856,9 +865,14 @@ void MainWindow::on_btn_save_clicked()
     syslog(LOG_INFO, "load current profile: %s", syslog_buffer.data());
 
     // declare variables
-    QString citrix_store, citrix_netscaler, rdp_domain, rdp_server, rdp_username, rdp_password;
+    QString citrix_store, citrix_netscaler, rdp_domain, rdp_server, rdp_username, rdp_password, old_vdi_type;
     bool valid_input;
     valid_input = false;
+
+    // get vdi type before save
+    old_vdi_type = citrix_rdp_type;
+    syslog_buffer = old_vdi_type.toLocal8Bit();
+    syslog(LOG_NOTICE, "Old vdi type: %s", syslog_buffer.data());
 
     // get all informationen from textboxes
     syslog(LOG_DEBUG, "collect user input...");
@@ -970,15 +984,17 @@ void MainWindow::on_btn_save_clicked()
     RehashCerts();
     syslog(LOG_INFO, "try to rehash certificates.");
 
-    syslog(LOG_INFO, "try to change screen resolution on arm.");
-    // run a bash programm which changes the screen resolution.pi
-    QString hdmi_mode = QString::number(getScreenResolutionMode(this->ui->cbx_aufloesung->currentText()));
-    runChangeScreenResolution(mode, hdmi_mode);
+    if(QString::compare(mode, "1", Qt::CaseInsensitive) == 0) {
+        syslog(LOG_INFO, "change screen resolution on RPi.");
+        // run a bash programm which changes the screen resolution.pi
+        QString hdmi_mode = QString::number(getScreenResolutionMode(this->ui->cbx_aufloesung->currentText()));
+        runChangeScreenResolution(mode, hdmi_mode);
+     }
 
 
     if(valid_input)
     {
-        syslog(LOG_INFO, "we stored alle profile settings successful.");
+        syslog(LOG_INFO, "we stored all profile settings successful.");
         msgBox = new QMessageBox();
         msgBox->setWindowTitle("Konfiguration");
         msgBox->setText("Alle Einstellungen wurden erfolgreich gespeichert.");
