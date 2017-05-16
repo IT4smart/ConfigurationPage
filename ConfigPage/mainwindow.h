@@ -39,7 +39,7 @@ public:
     QString path_certificates;
     QString path_scripts;
     QString path_usb;
-    QString script_get_dns, script_get_gateway, script_get_ip_ethernet, script_get_netmask, script_rehash_certs, script_change_screen_resolution;
+    QString script_get_dns, script_get_gateway, script_get_ip_ethernet, script_get_netmask, script_rehash_certs, script_change_screen_resolution, script_get_hardware;
 
     // profiles data
     QString network_type, network_ip, network_netmask, network_gateway, network_dns, citrix_rdp_type;
@@ -64,9 +64,11 @@ private:
     void loadProfiles();
     void startStartPage();
     void setNetworkUi(QString network_type);
-    void setSystemUi(QString resolution_type = "dynamic", QString resolution = "800x600");
-    void setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_autologin, QString rdp_username, QString rdp_password);
+    void setSystemUi(QString resolution_type = "dynamic", QString resolution = "800x600", bool active = true);
+    void setVdiData( QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_username, QString rdp_password);
+    void setVdiUi(QString citrix_rdp_type, QString rdp_autologin);
     void RehashCerts();
+    void killStartPage();
     void rebootDevice();
     void runChangeScreenResolution(QString mode, QString hdmi_mode = "0");
     int getScreenResolutionMode(QString resolution);
@@ -74,6 +76,7 @@ private:
     QString getNetworkDns();
     QString getNetworkGateway();
     QString getNetworkNetmask();
+    QString getHardwareInformation();
     QString m_sSettingsFile;
     QString m_sProfilesFile;
     QMessageBox* msgBox;

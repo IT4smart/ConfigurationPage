@@ -17,6 +17,7 @@
 #include "proxymodel.h"
 
 
+
 /**
  * @brief MainWindow::MainWindow
  * @param parent
@@ -78,6 +79,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ui
     this->ui->txt_rdp_password->setEchoMode(QLineEdit::Password);
+
+    // kill it4s-startpage
+    this->killStartPage();
 
 }
 
@@ -150,6 +154,12 @@ void MainWindow::loadSettings()
     syslog(LOG_DEBUG, "set script to change the screen resolution on RPi.");
     syslog_buffer = script_change_screen_resolution.toLocal8Bit();
     syslog(LOG_NOTICE, "Script to change screen resolution: %s", syslog_buffer.data());
+
+    // get hardware information
+    script_get_hardware = settings.value("script/get_hardware").toString();
+    syslog(LOG_DEBUG, "set script to get hardware information.");
+    syslog_buffer = script_get_hardware.toLocal8Bit();
+    syslog(LOG_NOTICE, "Script to get hardware information: %s", syslog_buffer.data());
 }
 
 
@@ -171,9 +181,12 @@ void MainWindow::loadProfiles()
     syslog_buffer = network_type.toLocal8Bit();
     syslog(LOG_INFO, "Networktype: %s", syslog_buffer.data());
 
+    /*
+     * Not working at the moment
     // set ui for network
     setNetworkUi(network_type);
     syslog(LOG_NOTICE, "set networksetting on ui.");
+    */
 
     // check if we use citrix or rdp
     // vdi type
@@ -245,10 +258,15 @@ void MainWindow::loadProfiles()
 
 
     // set ui for vdi
-    setVdiUi(citrix_rdp_type, citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server, rdp_autologin, rdp_username, rdp_password);
+    setVdiUi(citrix_rdp_type, rdp_autologin);
+    setVdiData(citrix_store, citrix_netscaler, citrix_domain, rdp_domain, rdp_server, rdp_username, rdp_password);
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
-    setSystemUi(resolution_type, resolution);
+    if(QString::compare(this->getHardwareInformation(), "BCM2709") == 0) {
+        setSystemUi(resolution_type, resolution);
+    } else {
+        setSystemUi(resolution_type, resolution, false);
+    }
     syslog(LOG_NOTICE, "Set system settings on ui.");
 
 }
@@ -259,30 +277,44 @@ void MainWindow::loadProfiles()
  * @param resolution_type
  * @param resolution
  */
-void MainWindow::setSystemUi(QString resolution_type, QString resolution)
+void MainWindow::setSystemUi(QString resolution_type, QString resolution, bool active)
 {
-    if((QString::compare(resolution_type, "dynamic") == 0) || (resolution_type.trimmed().isEmpty())) {
-        this->ui->cbx_aufloesung->setDisabled(true);
+    // check if we are on the rigth platform
+    if(active == true) {
+        syslog(LOG_DEBUG, "Enable input for system ui.");
+        if((QString::compare(resolution_type, "dynamic") == 0) || (resolution_type.trimmed().isEmpty())) {
+            this->ui->cbx_aufloesung->setDisabled(true);
+            this->ui->rbn_res_dyn->setChecked(true);
+            this->ui->rbn_res_stat->setChecked(false);
+
+        } else {
+            this->ui->cbx_aufloesung->setEnabled(true);
+
+            int index = this->ui->cbx_aufloesung->findText(resolution);
+
+            // logging
+            syslog_buffer = QString::number(index).toLocal8Bit();
+            syslog(LOG_DEBUG, "Index of resolution: %s", syslog_buffer.data());
+
+            if(index >= 0) {
+                this->ui->cbx_aufloesung->setCurrentIndex(index);
+            } else {
+                this->ui->cbx_aufloesung->setCurrentIndex(0);
+            }
+
+            this->ui->rbn_res_dyn->setChecked(false);
+            this->ui->rbn_res_stat->setChecked(true);
+        }
+    } else {
+        syslog(LOG_DEBUG, "Disable input for system ui.");
+        // set radiobutton to dynamic
         this->ui->rbn_res_dyn->setChecked(true);
         this->ui->rbn_res_stat->setChecked(false);
 
-    } else {
-        this->ui->cbx_aufloesung->setEnabled(true);
-
-        int index = this->ui->cbx_aufloesung->findText(resolution);
-
-        // logging
-        syslog_buffer = QString::number(index).toLocal8Bit();
-        syslog(LOG_DEBUG, "Index of resolution: %s", syslog_buffer.data());
-
-        if(index >= 0) {
-            this->ui->cbx_aufloesung->setCurrentIndex(index);
-        } else {
-            this->ui->cbx_aufloesung->setCurrentIndex(0);
-        }
-
-        this->ui->rbn_res_dyn->setChecked(false);
-        this->ui->rbn_res_stat->setChecked(true);
+        // deactivate the input
+        this->ui->cbx_aufloesung->setDisabled(true);
+        this->ui->rbn_res_dyn->setDisabled(true);
+        this->ui->rbn_res_stat->setDisabled(true);
     }
 }
 
@@ -290,6 +322,7 @@ void MainWindow::setSystemUi(QString resolution_type, QString resolution)
  * @brief MainWindow::setNetworkUi
  * @param network_type
  */
+/*
 void MainWindow::setNetworkUi(QString network_type)
 {
     if(QString::compare(network_type, "dhcp") == 0)
@@ -346,6 +379,44 @@ void MainWindow::setNetworkUi(QString network_type)
     this->ui->rbn_dhcp->setDisabled(true);
     this->ui->rbn_static->setDisabled(true);
     syslog(LOG_DEBUG, "disable radio buttons for network type.");
+}
+*/
+
+/**
+ * @brief MainWindow::getHardwareInformation
+ * @return
+ */
+QString MainWindow::getHardwareInformation() {
+    syslog(LOG_DEBUG, "inside function getHardwareInformation().");
+
+    //declare variables
+    QString command;
+    QPair<QByteArray, QByteArray> buffer;
+    QString result;
+    exec_cmd script;
+
+    // prepare command
+    command = QApplication::applicationDirPath() + path_scripts + script_get_hardware;
+    syslog_buffer = command.toLocal8Bit();
+    syslog(LOG_DEBUG, "Script command for hardware information: %s", syslog_buffer.data());
+
+    // execute script
+    buffer = script.exec_process(command);
+
+    // result
+    syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
+
+    // error
+    if(!buffer.second.isEmpty())
+    {
+        syslog(LOG_ERR, "Result: %s", buffer.second.data());
+    }
+
+    // convert it back to QString
+    result = QString::fromLatin1(buffer.first);
+
+    // return the result
+    return result;
 }
 
 /**
@@ -505,14 +576,61 @@ QString MainWindow::getNetworkNetmask()
 }
 
 /**
- * @brief MainWindow::setVdiUi
- * @param citrix_rdp_type
+ * @brief MainWindow::setVdiDat
  * @param citrix_store
  * @param citrix_netscaler
+ * @param citrix_domain
  * @param rdp_domain
  * @param rdp_server
+ * @param rdp_username
+ * @param rdp_password
  */
-void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_autologin, QString rdp_username, QString rdp_password)
+void MainWindow::setVdiData( QString citrix_store, QString citrix_netscaler, QString citrix_domain, QString rdp_domain, QString rdp_server, QString rdp_username, QString rdp_password)
+{
+    // set text to input fields
+    // set citrix store
+    this->ui->txt_storefront->setText(citrix_store);
+    syslog(LOG_DEBUG, "get current citrix store.");
+    syslog_buffer = citrix_store.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix store: %s", syslog_buffer.data());
+
+
+    // set citrix netscaler
+    this->ui->txt_netscaler->setText(citrix_netscaler);
+    syslog(LOG_DEBUG, "get current citrix netscaler.");
+    syslog_buffer = citrix_netscaler.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
+
+    // set citrix domain
+    this->ui->txt_ctx_domain->setText(citrix_domain);
+    syslog(LOG_DEBUG, "get current citrix domain.");
+    syslog_buffer = citrix_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
+
+    // set windows domain
+    this->ui->txt_rdp_domain->setText(rdp_domain);
+    syslog(LOG_DEBUG, "get current windows domain");
+    syslog_buffer = rdp_domain.toLocal8Bit();
+    syslog(LOG_INFO, "Current windows domain: %s", syslog_buffer.data());
+
+    // set rdp server
+    this->ui->txt_rdp_server->setText(rdp_server);
+    syslog(LOG_DEBUG, "get current rdp server.");
+    syslog_buffer = rdp_server.toLocal8Bit();
+    syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
+
+    // set rdp autologin
+    this->ui->txt_rdp_username->setText(rdp_username);
+    this->ui->txt_rdp_password->setText(rdp_password);
+}
+
+
+/**
+ * @brief MainWindow::setVdiUi
+ * @param citrix_rdp_type
+ * @param rdp_autologi
+ */
+void MainWindow::setVdiUi(QString citrix_rdp_type, QString rdp_autologin)
 {
     if(QString::compare(citrix_rdp_type, "citrix") == 0)
     {
@@ -570,42 +688,6 @@ void MainWindow::setVdiUi(QString citrix_rdp_type, QString citrix_store, QString
         this->ui->txt_netscaler->setDisabled(true);
         this->ui->txt_ctx_domain->setDisabled(true);
     }
-
-    // set text to input fields
-    // set citrix store
-    this->ui->txt_storefront->setText(citrix_store);
-    syslog(LOG_DEBUG, "get current citrix store.");
-    syslog_buffer = citrix_store.toLocal8Bit();
-    syslog(LOG_INFO, "Current citrix store: %s", syslog_buffer.data());
-
-
-    // set citrix netscaler
-    this->ui->txt_netscaler->setText(citrix_netscaler);
-    syslog(LOG_DEBUG, "get current citrix netscaler.");
-    syslog_buffer = citrix_netscaler.toLocal8Bit();
-    syslog(LOG_INFO, "Current citrix netscaler: %s", syslog_buffer.data());
-
-    // set citrix domain
-    this->ui->txt_ctx_domain->setText(citrix_domain);
-    syslog(LOG_DEBUG, "get current citrix domain.");
-    syslog_buffer = citrix_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Current citrix domain: %s", syslog_buffer.data());
-
-    // set windows domain
-    this->ui->txt_rdp_domain->setText(rdp_domain);
-    syslog(LOG_DEBUG, "get current windows domain");
-    syslog_buffer = rdp_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Current windows domain: %s", syslog_buffer.data());
-
-    // set rdp server
-    this->ui->txt_rdp_server->setText(rdp_server);
-    syslog(LOG_DEBUG, "get current rdp server.");
-    syslog_buffer = rdp_server.toLocal8Bit();
-    syslog(LOG_INFO, "Current rdp server: %s", syslog_buffer.data());
-
-    // set rdp autologin
-    this->ui->txt_rdp_username->setText(rdp_username);
-    this->ui->txt_rdp_password->setText(rdp_password);
 }
 
 /**
@@ -710,6 +792,28 @@ void MainWindow::RehashCerts()
     }
 }
 
+
+/**
+ * @brief MainWindow::killStartPage
+ */
+void MainWindow::killStartPage()
+{
+    QPair<QByteArray, QByteArray> buffer;
+    exec_cmd script;
+
+    // execute script
+    syslog(LOG_NOTICE, "Command: pkill -f StartPage");
+    buffer = script.exec_process("pkill -f StartPage");
+
+    // result
+    syslog(LOG_DEBUG, "Result: %s", buffer.first.data());
+
+    // error
+    if(!buffer.second.isEmpty())
+    {
+        syslog(LOG_ERR, "Result: %s", buffer.second.data());
+    }
+}
 
 
 /**
@@ -994,13 +1098,24 @@ void MainWindow::on_btn_save_clicked()
 
     if(valid_input)
     {
-        syslog(LOG_INFO, "we stored all profile settings successful.");
-        msgBox = new QMessageBox();
-        msgBox->setWindowTitle("Konfiguration");
-        msgBox->setText("Alle Einstellungen wurden erfolgreich gespeichert.");
-        msgBox->exec();
+        if(QString::compare(citrix_rdp_type, old_vdi_type, Qt::CaseInsensitive) == 0) {
+            syslog(LOG_INFO, "we stored all profile settings successful.");
+            msgBox = new QMessageBox();
+            msgBox->setWindowTitle("Konfiguration");
+            msgBox->setText("Alle Einstellungen wurden erfolgreich gespeichert.");
+            msgBox->exec();
 
-        this->startStartPage(); // start StartPage
+            this->startStartPage(); // start StartPage
+        } else {
+            syslog(LOG_INFO, "we stored all profile settings successful. reboot");
+            msgBox = new QMessageBox();
+            msgBox->setWindowTitle("Konfiguration");
+            msgBox->setText("Alle Einstellungen wurden erfolgreich gespeichert. Das Gerät wird nun neugestartet.");
+            msgBox->exec();
+
+            // reboot device
+            this->rebootDevice();
+        }
     }    
 
 }
@@ -1024,34 +1139,8 @@ void MainWindow::on_rbn_citrix_clicked()
 {
     syslog(LOG_DEBUG, "Radiobutton for citrix clicked");
 
-    // get current configuration
-    syslog(LOG_DEBUG, "get current citrix configuration");
-
-    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
-    if (profiles.status() == QSettings::AccessError) {
-        syslog(LOG_ERR, "We could not access the file.");
-    }
-
-    // citrix store
-    QString citrix_store = profiles.value(STORE_URL).toString();
-    syslog(LOG_DEBUG, "get citrix store.");
-    syslog_buffer = citrix_store.toLocal8Bit();
-    syslog(LOG_NOTICE, "citrix - Store: %s", syslog_buffer.data());
-
-    // citrix netscaler
-    QString citrix_netscaler = profiles.value(NETSCALER_URL).toString();
-    syslog(LOG_DEBUG, "get citrix netscaler.");
-    syslog_buffer = citrix_netscaler.toLocal8Bit();
-    syslog(LOG_INFO, "Citrix - Netscaler: %s", syslog_buffer.data());
-
-    // citrix domain
-    QString citrix_domain = profiles.value(CTX_DOMAIN).toString();
-    syslog(LOG_DEBUG, "get citrix domain");
-    syslog_buffer = citrix_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Citrix - Domain: %s", syslog_buffer.data());
-
     // set ui for vdi
-    setVdiUi("citrix", citrix_store, citrix_netscaler, citrix_domain, "", "", "", "", "");
+    setVdiUi("citrix", "");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
 }
@@ -1063,46 +1152,8 @@ void MainWindow::on_rbn_rdp_clicked()
 {
     syslog(LOG_DEBUG, "Radiobutton for rdp clicked");
 
-    // get current configuration
-    syslog(LOG_DEBUG, "get current rdp configuration");
-
-    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
-    if (profiles.status() == QSettings::AccessError) {
-        syslog(LOG_ERR, "We could not access the file.");
-    }
-
-    // windows domain
-    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
-    syslog(LOG_DEBUG, "get windows domain for rdp.");
-    syslog_buffer = rdp_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
-
-    // rdp server
-    QString rdp_server = profiles.value(RDP_URL).toString();
-    syslog(LOG_DEBUG, "get rdp server.");
-    syslog_buffer = rdp_server.toLocal8Bit();
-    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
-
-    // rdp autologin
-    QString rdp_autologin = profiles.value(RDP_AUTOLOGIN).toString();
-    syslog(LOG_DEBUG, "get rdp autologin.");
-    syslog_buffer = rdp_autologin.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin: %s", syslog_buffer.data());
-
-    // rdp username
-    QString rdp_username = profiles.value(RDP_USERNAME).toString();
-    syslog(LOG_DEBUG, "get rdp username for autologin.");
-    syslog_buffer = rdp_username.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin username: %s", syslog_buffer.data());
-
-    // rdp password
-    QString rdp_password = profiles.value(RDP_PASSWORD).toString();
-    syslog(LOG_DEBUG, "get rdp password for autologin.");
-    syslog_buffer = rdp_password.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
-
     // set ui for vdi
-    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, rdp_autologin, rdp_username, rdp_password);
+    setVdiUi("rdp", "");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 }
 
@@ -1113,46 +1164,8 @@ void MainWindow::on_rbn_autologin_yes_clicked()
 {
     syslog(LOG_DEBUG, "Enable autologin for rdp.");
 
-    // get current configuration
-    syslog(LOG_DEBUG, "get current rdp configuration");
-
-    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
-    if (profiles.status() == QSettings::AccessError) {
-        syslog(LOG_ERR, "We could not access the file.");
-    }
-
-    // windows domain
-    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
-    syslog(LOG_DEBUG, "get windows domain for rdp.");
-    syslog_buffer = rdp_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
-
-    // rdp server
-    QString rdp_server = profiles.value(RDP_URL).toString();
-    syslog(LOG_DEBUG, "get rdp server.");
-    syslog_buffer = rdp_server.toLocal8Bit();
-    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
-
-    // rdp autologin
-    QString rdp_autologin = profiles.value(RDP_AUTOLOGIN).toString();
-    syslog(LOG_DEBUG, "get rdp autologin.");
-    syslog_buffer = rdp_autologin.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin: %s", syslog_buffer.data());
-
-    // rdp username
-    QString rdp_username = profiles.value(RDP_USERNAME).toString();
-    syslog(LOG_DEBUG, "get rdp username for autologin.");
-    syslog_buffer = rdp_username.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin username: %s", syslog_buffer.data());
-
-    // rdp password
-    QString rdp_password = profiles.value(RDP_PASSWORD).toString();
-    syslog(LOG_DEBUG, "get rdp password for autologin.");
-    syslog_buffer = rdp_password.toLocal8Bit();
-    syslog(LOG_INFO, "RDP Autologin password: %s", syslog_buffer.data());
-
     // set ui for vdi
-    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, "true", rdp_username, rdp_password);
+    setVdiUi("rdp", "true");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 
 }
@@ -1161,29 +1174,8 @@ void MainWindow::on_rbn_autologin_no_clicked()
 {
     syslog(LOG_DEBUG, "Disable autologin for rdp.");
 
-    // get current configuration
-    syslog(LOG_DEBUG, "get current rdp configuration");
-
-    QSettings profiles(m_sProfilesFile, QSettings::NativeFormat);
-    if (profiles.status() == QSettings::AccessError) {
-        syslog(LOG_ERR, "We could not access the file.");
-    }
-
-    // windows domain
-    QString rdp_domain = profiles.value(RDP_DOMAIN).toString();
-    syslog(LOG_DEBUG, "get windows domain for rdp.");
-    syslog_buffer = rdp_domain.toLocal8Bit();
-    syslog(LOG_INFO, "Windows domain: %s", syslog_buffer.data());
-
-    // rdp server
-    QString rdp_server = profiles.value(RDP_URL).toString();
-    syslog(LOG_DEBUG, "get rdp server.");
-    syslog_buffer = rdp_server.toLocal8Bit();
-    syslog(LOG_INFO, "RDP - Server: %s", syslog_buffer.data());
-
-
     // set ui for vdi
-    setVdiUi("rdp", "","", "", rdp_domain, rdp_server, "false", "", "");
+    setVdiUi("rdp", "false");
     syslog(LOG_NOTICE, "set vdi settings on ui");
 }
 
