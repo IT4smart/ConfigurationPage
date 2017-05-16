@@ -1,2 +1,2 @@
 #!/bin/bash
-cat /pro/cpuinfo | grep Hardware | awk '{print $3}'
+cat /proc/cpuinfo | grep Hardware | awk '{print $3}'
