@@ -7,732 +7,324 @@
     <x>0</x>
     <y>0</y>
     <width>862</width>
-    <height>768</height>
+    <height>1016</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
   <property name="windowTitle">
-   <string>configuration page</string>
-  </property>
-  <property name="layoutDirection">
-   <enum>Qt::LeftToRight</enum>
+   <string>Konfiguration ThinClient</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <widget class="QGroupBox" name="gb_network">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
+   <widget class="QGroupBox" name="gbx_network">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>140</y>
-      <width>831</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="title">
-     <string>Network</string>
-    </property>
-    <property name="flat">
-     <bool>false</bool>
-    </property>
-    <property name="checkable">
-     <bool>false</bool>
-    </property>
-    <widget class="QLabel" name="lb_network_ip">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>13</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
-     </property>
-     <property name="text">
-      <string>IP :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_network_netmask">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Netmask :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_network_gateway">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Gateway :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_network_ip">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>10</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_network_netmask">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>50</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_network_gateway">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>90</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="rdb_network_type_dhcp">
-     <property name="geometry">
-      <rect>
-       <x>450</x>
-       <y>10</y>
-       <width>75</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>dhcp</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="rdb_network_type_static">
-     <property name="geometry">
-      <rect>
-       <x>540</x>
-       <y>10</y>
-       <width>75</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>static</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_change_network">
-     <property name="geometry">
-      <rect>
-       <x>659</x>
-       <y>130</y>
-       <width>161</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="cursor">
-      <cursorShape>ArrowCursor</cursorShape>
-     </property>
-     <property name="text">
-      <string>change Network</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_network_dns">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>130</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>DNS:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_network_dns">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>130</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="gb_wlan">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>320</y>
-      <width>831</width>
-      <height>111</height>
+      <y>9</y>
+      <width>521</width>
+      <height>190</height>
      </rect>
     </property>
     <property name="title">
-     <string>WLan</string>
+     <string>Netzwerk</string>
     </property>
-    <widget class="QLabel" name="lb_wlan_ssid">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>SSID :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_wlan_passwd">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Password :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_wlan_ssid">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>40</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_wlan_passwd">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>80</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>deafult</string>
-     </property>
-     <property name="maxLength">
-      <number>64</number>
-     </property>
-     <property name="echoMode">
-      <enum>QLineEdit::PasswordEchoOnEdit</enum>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_change_wlan">
-     <property name="geometry">
-      <rect>
-       <x>659</x>
-       <y>80</y>
-       <width>161</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>change WLan</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chk_wlan_active">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>10</y>
-       <width>97</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>active ?</string>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="5" column="0">
+      <widget class="QLabel" name="lbl_dns">
+       <property name="text">
+        <string>DNS:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QLabel" name="lbl_gateway">
+       <property name="text">
+        <string>Gateway:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="lbl_ip">
+       <property name="text">
+        <string>IP:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="lbl_network_type">
+       <property name="text">
+        <string>Typ:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" colspan="2">
+      <widget class="QLineEdit" name="txt_ip"/>
+     </item>
+     <item row="2" column="0" rowspan="2" colspan="2">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Netzmaske:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" colspan="2">
+      <widget class="QLineEdit" name="txt_gateway"/>
+     </item>
+     <item row="2" column="2" rowspan="2" colspan="2">
+      <widget class="QLineEdit" name="txt_netmask"/>
+     </item>
+     <item row="6" column="3">
+      <widget class="QRadioButton" name="rbn_static">
+       <property name="text">
+        <string>Statisch</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="2">
+      <widget class="QRadioButton" name="rbn_dhcp">
+       <property name="text">
+        <string>DHCP</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2" colspan="2">
+      <widget class="QLineEdit" name="txt_dns"/>
+     </item>
+    </layout>
    </widget>
-   <widget class="QPushButton" name="btn_cancel">
-    <property name="geometry">
-     <rect>
-      <x>489</x>
-      <y>710</y>
-      <width>171</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>&amp;Cancel</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="drdw_profiles">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>90</y>
-      <width>201</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_drdw_profiles">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>97</y>
-      <width>100</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Profiles:</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_save_quit">
-    <property name="geometry">
-     <rect>
-      <x>679</x>
-      <y>710</y>
-      <width>161</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Save &amp;&amp; &amp;Quit</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_profile_delete">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>90</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>delete </string>
-    </property>
-    <property name="checkable">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_picture_left">
+   <widget class="QGroupBox" name="gbx_vdi">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>10</y>
-      <width>100</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Client Logo</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_picture_right">
-    <property name="geometry">
-     <rect>
-      <x>740</x>
-      <y>10</y>
-      <width>100</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>IT4S Logo</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_profile_new">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>470</x>
-      <y>90</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>new</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="gb_citrix_rdp">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>450</y>
-      <width>831</width>
-      <height>151</height>
+      <y>200</y>
+      <width>521</width>
+      <height>461</height>
      </rect>
     </property>
     <property name="title">
      <string>Citrix &amp;&amp; RDP</string>
     </property>
-    <widget class="QLabel" name="lb_citrix_rdp_citrix_store">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Citrix-Store:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_citrix_rdp_citrix_store">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>37</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_change_citrix_rdp">
-     <property name="geometry">
-      <rect>
-       <x>659</x>
-       <y>120</y>
-       <width>161</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>change Citrix &amp;&amp; RDP</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_citrix_rdp_rdp_domain">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>80</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_citrix_rdp_rdp_domain">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>83</y>
-       <width>150</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>RDP-Domain:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_citrix_rdp_rdp_server">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>40</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_citrix_rdp_rdp_server">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>43</y>
-       <width>150</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>RDP-Server:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txb_citrix_rdp_citrix_url">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>77</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>default</string>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_citrix_rdp_citrix_url">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>200</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Citrix-URL:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="5" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_storefront"/>
+     </item>
+     <item row="4" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_netscaler">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_ctx_domain"/>
+     </item>
+     <item row="11" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_server"/>
+     </item>
+     <item row="0" column="2">
+      <widget class="QRadioButton" name="rbn_rdp">
+       <property name="text">
+        <string>RDP</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="lbl_vdi_type">
+       <property name="text">
+        <string>Typ:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="2">
+      <widget class="QRadioButton" name="rbn_autologin_no">
+       <property name="text">
+        <string>Nein</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="lbl_autologin">
+       <property name="text">
+        <string>Autologin:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QRadioButton" name="rbn_autologin_yes">
+       <property name="text">
+        <string>Ja</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Citrix:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_domain"/>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="lbl_rdp">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>RDP:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QLabel" name="lbl_rdp_server">
+       <property name="text">
+        <string>Server:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Benutzername:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QRadioButton" name="rbn_citrix">
+       <property name="text">
+        <string>Citrix</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="lbl_ctx_domain">
+       <property name="text">
+        <string>Domäne:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="lbl_netscaler">
+       <property name="text">
+        <string>Netscaler Gateway:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="lbl_rdp_domain">
+       <property name="text">
+        <string>Domäne:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="lbl_storefront">
+       <property name="text">
+        <string>Storefront - Server:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="3">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Password:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_username"/>
+     </item>
+     <item row="14" column="1" colspan="2">
+      <widget class="QLineEdit" name="txt_rdp_password"/>
+     </item>
+    </layout>
    </widget>
-   <widget class="QRadioButton" name="rdb_citrix_rdp_type_citrix">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>460</y>
-      <width>100</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Citrix</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rdb_citrix_rdp_type_rdp">
-    <property name="geometry">
-     <rect>
-      <x>640</x>
-      <y>460</y>
-      <width>100</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>RDP</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="gb_logo_certificate">
+   <widget class="QGroupBox" name="gbx_certificates">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>620</y>
-      <width>831</width>
-      <height>81</height>
+      <y>700</y>
+      <width>838</width>
+      <height>28</height>
      </rect>
     </property>
     <property name="title">
-     <string>Logo &amp;&amp; Certificate</string>
-    </property>
-    <widget class="QPushButton" name="btn_pictures_upload">
-     <property name="geometry">
-      <rect>
-       <x>659</x>
-       <y>10</y>
-       <width>161</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>upload Logo</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="drdw_pictures">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>10</y>
-       <width>201</width>
-       <height>27</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_pictures_delete">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>50</y>
-       <width>201</width>
-       <height>26</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>delete current Logo</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lb_logo_configure">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>30</y>
-       <width>171</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Configure Logo:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_certificates_upload">
-     <property name="geometry">
-      <rect>
-       <x>659</x>
-       <y>50</y>
-       <width>161</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>upload Certificate</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QComboBox" name="drdw_languages">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>40</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
+     <string>Zertifikate</string>
     </property>
    </widget>
-   <widget class="QLabel" name="lb_drdw_languages">
+   <widget class="QPushButton" name="btn_save">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>47</y>
-      <width>100</width>
-      <height>20</height>
+      <x>580</x>
+      <y>810</y>
+      <width>163</width>
+      <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>Language:</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <string>Speichern</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_cancel">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>810</y>
+      <width>93</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Abbrechen</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_upload_cert">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>730</y>
+      <width>211</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Zertifikate hochladen</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -740,10 +332,11 @@
      <x>0</x>
      <y>0</y>
      <width>862</width>
-     <height>19</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

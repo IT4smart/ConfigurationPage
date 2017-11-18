@@ -4,7 +4,12 @@
 *.*~
 *.aux
 *.o
+.cproject
+.project
 cmake_test
+ConfigPage/*.pro.user
 #so that all the builds wont be stored everytime
-ConfigPage-build
+ConfigPage-build*
+ConfigPage/ConfigPagev2
+ConfigPage/ConfigPage
 build-*
