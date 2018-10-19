@@ -2,7 +2,7 @@ project(ConfigPage)
 cmake_minimum_required(VERSION 3.0)
 set(CMAKE_AUTOMOC ON)
 
-add_definitions("-std=c++14 -Wall -Wextra -Weffc++ -pedantic")
+add_definitions("-std=c++11 -Wall -Wextra -Weffc++ -pedantic")
 find_package(Qt5Widgets REQUIRED)
 
 qt5_wrap_ui(UI_HEADERS mainwindow.ui)

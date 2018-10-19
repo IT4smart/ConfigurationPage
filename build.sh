@@ -35,7 +35,7 @@ cd ..
 sed '/Package/d' -i "${SRC_DIR}/files/DEBIAN/control"
 sed '/Depends/d' -i "${SRC_DIR}/files/DEBIAN/control"
 echo "Package: configpage" >> "${SRC_DIR}/files/DEBIAN/control"
-echo "Depends: qt5-default" >> "${SRC_DIR}/files/DEBIAN/control"
+echo "Depends: qt5-default, python" >> "${SRC_DIR}/files/DEBIAN/control"
 mkdir -p files/opt/IT4S/configurationpage/ConfigPage
 cp -ar ConfigPage/ConfigPage files/opt/IT4S/configurationpage/ConfigPage
 cp -ar ConfigPage/certificates files/opt/IT4S/configurationpage/ConfigPage
