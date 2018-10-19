@@ -26,7 +26,7 @@ function dpkg_build()
 	echo "Installed-Size: $size" >> "$1/DEBIAN/control"
 	dpkg -b "$1" "$2"
 }
-# build 
+# build
 cd ConfigPage
 cmake .
 make "-j${NUM_CPUS}"
@@ -36,11 +36,11 @@ sed '/Package/d' -i "${SRC_DIR}/files/DEBIAN/control"
 sed '/Depends/d' -i "${SRC_DIR}/files/DEBIAN/control"
 echo "Package: configpage" >> "${SRC_DIR}/files/DEBIAN/control"
 echo "Depends: qt5-default, python" >> "${SRC_DIR}/files/DEBIAN/control"
-mkdir -p files/opt/IT4S/configurationpage/ConfigPage
-cp -ar ConfigPage/ConfigPage files/opt/IT4S/configurationpage/ConfigPage
-cp -ar ConfigPage/certificates files/opt/IT4S/configurationpage/ConfigPage
-cp -ar ConfigPage/scripts files/opt/IT4S/configurationpage/ConfigPage
-cp -ar ConfigPage/setting files/opt/IT4S/configurationpage/ConfigPage
+mkdir -p files/opt/IT4smart/configurationpage/ConfigPage
+cp -ar ConfigPage/ConfigPage files/opt/IT4smart/configurationpage/ConfigPage
+cp -ar ConfigPage/certificates files/opt/IT4smart/configurationpage/ConfigPage
+cp -ar ConfigPage/scripts files/opt/IT4smart/configurationpage/ConfigPage
+cp -ar ConfigPage/setting files/opt/IT4smart/configurationpage/ConfigPage
 fix_arch_ctl "files/DEBIAN/control"
 dpkg_build files "${1}-configpage.deb"
 

@@ -1,8 +1,8 @@
-Origin: IT4S
+Origin: IT4smart
 Version: 0.11.1
 Section: utils
 Essential: No
 Priority: required
-Maintainer: IT4S GmbH <support@it4s.eu>
-Homepage: http://www.it4s.eu
+Maintainer: IT4smart GmbH <support@it4smart.eu>
+Homepage: http://www.it4smart.eu
 Description: Application to configure StartPage and the way to communicate with the administration console
